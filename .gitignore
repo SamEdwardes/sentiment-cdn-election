@@ -1,7 +1,6 @@
 twitter-credentials.json
 .DS_Store
 notebooks/.ipynb_checkpoints/*
-data/*
 notebooks/scratch_01.py
 notebooks/textblob-demo.py
 notebooks/twitter-api-twitter.ipynb
@@ -9,3 +8,8 @@ notebooks/scratch-1.ipynb
 notebooks/twitter-api-twython.ipynb
 notebooks/election-tweets-analysis-no-code.ipynb
 notebooks/test.html
+data/twitter_2019-09-06.csv
+data/twitter_2019-09-07_v2.csv
+data/twitter_2019-09-07_v3 copy.csv
+data/twitter_2019-09-07.csv
+data/twitter-data.csv
