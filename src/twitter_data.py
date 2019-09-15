@@ -43,7 +43,7 @@ def tweets_get(user_name, num = 200, loops = 1):
     else: # if running from Heroku
         CONSUMER_KEY = environ['CONSUMER_KEY']
         CONSUMER_SECRET = environ['CONSUMER_SECRET']
-        ACCESS_KEY = environ['ACCESS_KEY']
+        ACCESS_KEY = environ['ACCESS_TOKEN']
         ACCESS_SECRET = environ['ACCESS_SECRET']
 
         
