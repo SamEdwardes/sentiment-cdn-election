@@ -48,10 +48,10 @@ def tweets_get(user_name, num = 200, loops = 1):
 
         
     # establish API
-    api = twitter.Api(consumer_key= creds['CONSUMER_KEY'],
-                    consumer_secret= creds['CONSUMER_SECRET'],
-                    access_token_key= creds['ACCESS_TOKEN'],
-                    access_token_secret= creds['ACCESS_SECRET'],
+    api = twitter.Api(consumer_key= CONSUMER_KEY,
+                    consumer_secret= CONSUMER_SECRET,
+                    access_token_key= ACCESS_KEY,
+                    access_token_secret= ACCESS_SECRET,
                     tweet_mode='extended') 
     
     # get the first batch of twitter data
