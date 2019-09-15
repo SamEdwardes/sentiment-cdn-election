@@ -9,7 +9,6 @@ notebooks/scratch-1.ipynb
 notebooks/twitter-api-twython.ipynb
 notebooks/election-tweets-analysis-no-code.ipynb
 notebooks/test.html
-data/raw/*
 __pycache__/src_twitter.cpython-37.pyc
 src/__pycache__/__init__.cpython-37.pyc
 src/__pycache__/twitter_data.cpython-37.pyc
