@@ -14,3 +14,4 @@ notebooks/test.html
 src/__pycache__/*
 .vscode/.ropeproject/objectdb
 .vscode/.ropeproject/config.py
+src/__pycache__/twitter_data.cpython-36.pyc

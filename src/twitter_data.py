@@ -68,7 +68,7 @@ def tweets_get(user_name, num = 200, loops = 1):
                                 
     return df
 
-def tweets_refresh(num_loops = 1):
+def tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets = 200, num_loops=1):
     '''
     Gets new twitter data if no yet downloaded for the current day
 
@@ -81,37 +81,17 @@ def tweets_refresh(num_loops = 1):
     DataFrame
         Contains raw twitter data from GetUserTimeline
     '''
-
-    brk = "\n\n*************************\n"
-    print(brk + "DATA REFRESH RESULTS:")
-
-    # get current date
-    now = datetime.datetime.now()
-    current_date = now.strftime("%Y-%m-%d")
-    df_path_raw = "data/raw/" + current_date + "_twitter-data-raw.csv"
+    # initialize an empty dataframe
+    df = pd.DataFrame()
 
     # check to see if twitter data has been downloaded for today yet
-    if os.path.exists(df_path_raw) == False:
+    for user in users:
         # get twitter data
-        JT = tweets_get("JustinTrudeau", 200, loops=num_loops)
-        AS = tweets_get("AndrewScheer", 200, loops=num_loops)
-        
-        # add user name
-        AS['handle'] = "@AndrewScheer"
-        JT['handle'] = "@JustinTrudeau"
-        
+        df_temp = tweets_get(user_name=user, num=num_tweets, loops=num_loops)
+        df_temp['handle'] = user
         # combine dataframes
-        tweets_raw = pd.concat([JT, AS])
-        
-        # save dataframe to local disc
-        tweets_raw.to_csv(df_path_raw)
-        print("\tNew twitter data downloaded.")
-        
-    else:
-        tweets_raw = pd.read_csv(df_path_raw)
-        print('\tData read from local machine')
-
-    return tweets_raw
+        df = pd.concat([df, df_temp])
+    return df
 
 def tweets_clean_df(df):
     '''
@@ -138,9 +118,10 @@ def tweets_clean_df(df):
     # FILTERS
 
     # keep starting from the min date where data exists for both
-    min_as = min(df[df['handle'] == "@AndrewScheer"]['date'])
-    min_js = min(df[df['handle'] == "@JustinTrudeau"]['date'])
-    min_date = max(min_as, min_js)
+    min_date_list = []
+    for user in list(df['handle'].unique()):
+        min_date_list.append(min(df[df['handle'] == user]['date']))
+    min_date = max(min_date_list)
     df = df[df['date']>= min_date]
     # keep only english langauge tweets
     df = df[df['lang'] == 'en']
@@ -191,12 +172,29 @@ def tweets_clean_df(df):
     # run functions, save dataframe, and return dataframe
     tweets = df['full_text']
     df['clean_tweet'] = tweets.apply(tweets_clean_text)
-    # get current date
-    now = datetime.datetime.now()
-    current_date = now.strftime("%Y-%m-%d")
-    df_path_clean = "data/clean/" + current_date + "_twitter-data-clean.csv"
-    # df.to_csv(df_path_clean)
     return(df)
+
+def tweets_break(x):
+    '''Loop through a tweet and insert <br> every 60 characters for better spacing'''
+    it = 1
+    start = 0
+    stop = start + 60
+    num_loops = ((len(x)-1) // 60) + 1
+    clean = []
+
+    while it <= num_loops:
+        i = x[start:stop]+"<br>"
+        clean += i # append to list
+        # update positions
+        it += 1
+        start = stop
+        stop = start +60
+
+        if stop > len(x)-1:
+            stop = len(x)-1
+
+    # concatenate list
+    return "".join(clean)
 
 def get_sentiment(tweets):
     '''returns a dictionary with sentiment and polarity'''

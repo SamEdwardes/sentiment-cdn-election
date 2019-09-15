@@ -1,8 +1,10 @@
 from src.twitter_data import *
 
 brk = "\n\n*************************\n"
-x = tweets_refresh()
+x = tweets_refresh(users=["TheReaLSamlam", "JustinTrudeau"], num_loops=1)
 x = tweets_clean_df(x)
+
+tweets
 
 print(brk + "RAW DATA:")
 print(x.head())
