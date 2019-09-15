@@ -1,8 +1,13 @@
+# important
 twitter-credentials.json
-*.pyc
 .DS_Store
+
+# vs code
+.vscode/.ropeproject/objectdb
+.vscode/.ropeproject/config.py
+
+# notebooks
 .ipynb_checkpoints/*
-src/__pycache__/*
 notebooks/.ipynb_checkpoints/*
 notebooks/scratch_01.py
 notebooks/textblob-demo.py
@@ -11,7 +16,4 @@ notebooks/scratch-1.ipynb
 notebooks/twitter-api-twython.ipynb
 notebooks/election-tweets-analysis-no-code.ipynb
 notebooks/test.html
-src/__pycache__/*
-.vscode/.ropeproject/objectdb
-.vscode/.ropeproject/config.py
-src/__pycache__/twitter_data.cpython-36.pyc
+
