@@ -1,5 +1,6 @@
 # libraries (base)
 import datetime
+from os import environ
 import os
 
 # libraries (other)
@@ -30,10 +31,21 @@ def tweets_get(user_name, num = 200, loops = 1):
     Dataframe with twitter data
     '''
 
-    # get credentials
+    # GET CREDENTIALS
     path = "twitter-credentials.json"
-    with open(path, "r") as file:
-        creds = json.load(file)
+    if os.path.exists(path): # if running from local machine
+        with open(path, "r") as file:
+            creds = json.load(file)
+        CONSUMER_KEY = creds['CONSUMER_KEY']
+        CONSUMER_SECRET = creds['CONSUMER_SECRET']
+        ACCESS_KEY = creds['ACCESS_TOKEN']
+        ACCESS_SECRET = creds['ACCESS_SECRET']
+    else: # if running from Heroku
+        CONSUMER_KEY = environ['CONSUMER_KEY']
+        CONSUMER_SECRET = environ['CONSUMER_SECRET']
+        ACCESS_KEY = environ['ACCESS_KEY']
+        ACCESS_SECRET = environ['ACCESS_SECRET']
+
         
     # establish API
     api = twitter.Api(consumer_key= creds['CONSUMER_KEY'],
@@ -116,13 +128,6 @@ def tweets_clean_df(df):
 
 
     # FILTERS
-
-    # keep starting from the min date where data exists for both
-    min_date_list = []
-    for user in list(df['handle'].unique()):
-        min_date_list.append(min(df[df['handle'] == user]['date']))
-    min_date = max(min_date_list)
-    df = df[df['date']>= min_date]
     # keep only english langauge tweets
     df = df[df['lang'] == 'en']
 
