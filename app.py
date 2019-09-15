@@ -27,7 +27,8 @@ server = app.server
 # get twitter data
 # df = tweets_refresh()
 # df = tweets_clean_df(df)
-df = pd.read_csv("https://github.com/SamEdwardes/sentiment-cdn-election/raw/master/data/clean/2019-09-14_twitter-data-clean.csv")
+# df = pd.read_csv("https://github.com/SamEdwardes/sentiment-cdn-election/raw/master/data/clean/2019-09-14_twitter-data-clean.csv")
+df = tweets_get("JustinTrudeau", 200, 1)
 
 # generate a table
 def generate_table(dataframe, max_rows=10):
