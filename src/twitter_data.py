@@ -68,7 +68,7 @@ def tweets_get(user_name, num = 200, loops = 1):
                                 
     return df
 
-def tweets_refresh():
+def tweets_refresh(num_loops = 1):
     '''
     Gets new twitter data if no yet downloaded for the current day
 
@@ -93,8 +93,8 @@ def tweets_refresh():
     # check to see if twitter data has been downloaded for today yet
     if os.path.exists(df_path_raw) == False:
         # get twitter data
-        JT = tweets_get("JustinTrudeau", 200, 3)
-        AS = tweets_get("AndrewScheer", 200, 3)
+        JT = tweets_get("JustinTrudeau", 200, loops=num_loops)
+        AS = tweets_get("AndrewScheer", 200, loops=num_loops)
         
         # add user name
         AS['handle'] = "@AndrewScheer"
@@ -195,5 +195,18 @@ def tweets_clean_df(df):
     now = datetime.datetime.now()
     current_date = now.strftime("%Y-%m-%d")
     df_path_clean = "data/clean/" + current_date + "_twitter-data-clean.csv"
-    df.to_csv(df_path_clean)
+    # df.to_csv(df_path_clean)
     return(df)
+
+def get_sentiment(tweets):
+    '''returns a dictionary with sentiment and polarity'''
+    polarity = []
+    subjectivity = []
+    for tweet in tweets:
+        tweet = TextBlob(tweet)
+        pol = tweet.sentiment.polarity
+        polarity.append(pol)
+        subj = tweet.sentiment.subjectivity
+        subjectivity.append(subj)
+        
+    return {'polarity': polarity, 'subjectivity': subjectivity} 

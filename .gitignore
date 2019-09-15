@@ -1,6 +1,8 @@
 twitter-credentials.json
+*.pyc
 .DS_Store
 .ipynb_checkpoints/*
+src/__pycache__/*
 notebooks/.ipynb_checkpoints/*
 notebooks/scratch_01.py
 notebooks/textblob-demo.py
@@ -9,6 +11,6 @@ notebooks/scratch-1.ipynb
 notebooks/twitter-api-twython.ipynb
 notebooks/election-tweets-analysis-no-code.ipynb
 notebooks/test.html
-__pycache__/src_twitter.cpython-37.pyc
-src/__pycache__/__init__.cpython-37.pyc
-src/__pycache__/twitter_data.cpython-37.pyc
+src/__pycache__/*
+.vscode/.ropeproject/objectdb
+.vscode/.ropeproject/config.py
