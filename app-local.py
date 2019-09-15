@@ -58,7 +58,7 @@ app.layout = html.Div([
     html.Hr(),
     html.H3("Top 5 Most Negative Tweets for Andrew Scheer:"),
     generate_table(df[df['handle']=="AndrewScheer"].sort_values(by=['clean_polarity']).head(5)[['handle', 'date', 'full_text','clean_polarity']]),
-    html.H3("Top 5 Most Negative Tweets for Just Trudeau:"),
+    html.H3("Top 5 Most Negative Tweets for Justin Trudeau:"),
     generate_table(df[df['handle']=="JustinTrudeau"].sort_values(by=['clean_polarity']).head(5)[['handle', 'date', 'full_text','clean_polarity']])
 ])
 
