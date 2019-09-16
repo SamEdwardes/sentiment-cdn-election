@@ -1,18 +1,75 @@
-# Canadian Election Twitter Sentiment Analysis
+# 2019 Canadian Election Twitter Sentiment Analysis
 
-This program analyses twitter data from the party leaders running in the 2019 Canadian elections.
+## Background
 
-App: [Heroku](https://cdn-election-sent-app.herokuapp.com/)
+The 2019 Canadian election will be held on Monday, October 21, 2019. This program analyses twitter data from the party leaders running in the 2019 Canadian elections.
+
+The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com/](https://cdn-election-sent-app.herokuapp.com/)
+
+
+| Party          | Leader         | Picture                             | Site                                                            |
+|----------------|----------------|-------------------------------------|-----------------------------------------------------------------|
+| Liberals       | Justin Trudeau | ![jt](https://tinyurl.com/y6m89uj7 = 100x100) | [2019.liberal.ca](https://2019.liberal.ca/)                     |
+| Conservatives  | Andrew Scheer  | ![as](https://tinyurl.com/y4yvbyyk = 100x100) | [conservative.ca](https://www.conservative.ca/)                 |
+| NDP            | Jagmeet Singh  | ![js](https://tinyurl.com/y5mkbu3a) | [ndp.ca](https://www.ndp.ca/)                                   |
+| Green Party    | Elizabeth May  | ![em](https://tinyurl.com/yxpowzq8) | [greenparty.ca](https://www.greenparty.ca/en)                   |
+| People's Party | Maxime Bernier | ![mb](https://tinyurl.com/y4wum9nd) | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) |
+
+
+## Disclaimer
+
+> **Please note that this is a work in progress. Results may not be 100% accurate and there could be errors in the analysis.**
 
 ## Directory
 
+```
+.
+├── Procfile
+├── README.md
+├── app-local.py #
+├── app.py # the file used by Heroku to create apps
+├── data # contains example data
+├── docs # used by app.py to read in text
+├── election-tweets-analysis.ipynb # example of code
+├── nltk.txt
+├── notebooks # contain examples of code
+├── requirements.txt # used by Heroku to install requirements
+├── src
+│   ├── twitter_data.py # functions to get and clean twitter data
+│   └── twitter_plots.py # functions to create plots
+```
+*Tree diagram only includes most important files.*
+
+## Environment
+
+Use the following code with terminal to create the appropriate environment.
+
+```
+conda create --name hello-world-dash-app-env python=3.6.8
+conda activate hello-world-dash-app-env
+
+pip install pandas
+pip install dash
+pip install gunicorn
+# see requirements.txt for additional installs
+```
+
+*I originally used conda to install the libraries but for some reason that resulted in deployment errors. When using pip to install everything worked.*
+
+Save the requirements using pip and conda
+
+```
+pip freeze > requirements.txt # used by Heroku
+```
 
 ## Resources
 
-- https://blog.cambridgespark.com/deploying-a-machine-learning-model-to-the-web-725688b851c7
-- https://dash.plot.ly/deployment
-- https://github.com/plotly/dash-px/blob/master/app.py
-- https://dev.to/emcain/how-to-set-up-a-twitter-bot-with-python-and-heroku-1n39
+- Heroku Instructions from Dash - https://dash.plot.ly/deployment
+- An example of plotly express on Heroku - https://github.com/plotly/dash-px/blob/master/app.py
+- Good blog post with deploying machine learning model - https://blog.cambridgespark.com/deploying-a-machine-learning-model-to-the-web-725688b851c7
+- Setting up Twitter API and Keys on Heroku - https://dev.to/emcain/how-to-set-up-a-twitter-bot-with-python-and-heroku-1n39
 
-## To DO
-- set up env variables on heroku so it can pull twitter data (https://dev.to/emcain/how-to-set-up-a-twitter-bot-with-python-and-heroku-1n39)
+
+## To Do
+
+- correct plot colours for each leader

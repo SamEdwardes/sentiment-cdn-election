@@ -25,18 +25,16 @@ server = app.server
 
 
 # TWITTER DATA
-# leaders: "JustinTrudeau", "AndrewScheer", "ElizabethMay"
-df = tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets=200, num_loops=1)
+# leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
+df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=2)
 # clean twitter data
 df = tweets_clean_df(df)
 df['break_tweet'] = df['full_text'].apply(tweets_break)
 # add sentiment and polarity
 raw_sentiment = get_sentiment(df['full_text'])
 clean_sentiment = get_sentiment(df['clean_tweet'])
-df['raw_polarity'] = raw_sentiment['polarity']
-df['raw_subjectivity'] = raw_sentiment['subjectivity']
-df['clean_polarity'] = clean_sentiment['polarity']
-df['clean_subjectivity'] = clean_sentiment['subjectivity']
+df['polarity'] = clean_sentiment['polarity']
+df['subjectivity'] = clean_sentiment['subjectivity']
 
 
 # APP LAYOUT
@@ -49,9 +47,9 @@ app.layout = html.Div([
     dcc.Graph(figure = plot_polarity_dist(df)),
     html.Hr(),
     html.H3("Top 5 Most Negative Tweets for Andrew Scheer:"),
-    generate_table(df[df['handle']=="AndrewScheer"].sort_values(by=['clean_polarity']).head(5)[['handle', 'date', 'full_text','clean_polarity']]),
+    generate_table(df[df['handle']=="AndrewScheer"].sort_values(by=['polarity']).head(5)[['handle', 'date', 'full_text','polarity','subjectivity']]),
     html.H3("Top 5 Most Negative Tweets for Justin Trudeau:"),
-    generate_table(df[df['handle']=="JustinTrudeau"].sort_values(by=['clean_polarity']).head(5)[['handle', 'date', 'full_text','clean_polarity']])
+    generate_table(df[df['handle']=="JustinTrudeau"].sort_values(by=['polarity']).head(5)[['handle', 'date', 'full_text','polarity','subjectivity']])
 ])
 
 if __name__ == '__main__':

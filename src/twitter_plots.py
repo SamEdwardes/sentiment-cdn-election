@@ -23,9 +23,9 @@ def plot_tweets_time(df):
 
 
 def plot_tweets_sentiment(df):
-    fig_scatter = px.scatter(df.sort_values(by=['handle']), x = 'clean_subjectivity', y = 'clean_polarity', 
+    fig_scatter = px.scatter(df.sort_values(by=['handle']), x = 'subjectivity', y = 'polarity', 
                             hover_name='break_tweet', color = 'handle', opacity=0.5, 
-                            title = "Sentiment Analysis on Clean Tweets", trendline='ols',size='retweet_count')
+                            title = "Sentiment Analysis on Tweets", trendline='ols',size='retweet_count')
     return fig_scatter
 
 def plot_polarity_dist(df):
@@ -36,7 +36,7 @@ def plot_polarity_dist(df):
     tweets = []
     group_labels = []
     for user in list(df['handle'].unique()):
-        polarity.append(df[df['handle'] == user]['clean_polarity'])
+        polarity.append(df[df['handle'] == user]['polarity'])
         tweets.append(df[df['handle'] == user]['break_tweet'])
         group_labels.append(user)
     # turn data into lists

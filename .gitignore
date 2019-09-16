@@ -19,3 +19,4 @@ notebooks/scratch-1.ipynb
 notebooks/twitter-api-twython.ipynb
 notebooks/election-tweets-analysis-no-code.ipynb
 notebooks/test.html
+.vscode/*
