@@ -2,7 +2,14 @@ import plotly_express as px
 import plotly.figure_factory as ff
 import dash_html_components as html
 
+# colours for eachleader
+colour_dict = {'JustinTrudeau':'#D91A20', 'AndrewScheer':'#1A4E89', 'ElizabethMay':'#42A03A', "theJagmeetSingh":'#F29F24', 'MaximeBernier':'#A9A9A9'}
+
+
 def generate_table(df, max_rows=10):
+    '''
+    Renders a table in dash app.
+    '''
     return html.Table(
         # Header
         [html.Tr([html.Th(col) for col in df.columns])] +
@@ -12,38 +19,81 @@ def generate_table(df, max_rows=10):
         ]) for i in range(min(len(df), max_rows))]
     )
 
-def plot_tweets_time(df):
-    df_weekly_count = df.groupby(['date_week', 'handle'], as_index=False).count().iloc[:, 0:3]
-    df_weekly_count.columns = ['date_week', 'handle', 'count']
+
+def plot_tweets_total(df):
+    df_count = df.groupby(['handle'], as_index=False).count().iloc[:,0:2]
+    df_count.columns = ['handle', 'number of tweets']
     # create plot
-    fig_tweet_count_weekly = px.line(df_weekly_count, x = 'date_week', 
-                                    y = 'count', color="handle", 
+    fig = px.bar(df_count, x = 'handle', 
+                 y = 'number of tweets', color="handle", color_discrete_map=colour_dict,
+                 title="Number of Tweets")
+    return(fig)
+
+
+def plot_tweets_time(df):
+    '''
+    Plots tweets by week for each unique handle
+    '''
+    df_weekly_count = df.groupby(['date_week', 'handle'], as_index=False).count().iloc[:, 0:3]
+    df_weekly_count.columns = ['week', 'handle', 'number of tweets']
+    # create plot
+    fig_tweet_count_weekly = px.line(df_weekly_count, x = 'week', 
+                                    y = 'number of tweets', color="handle", color_discrete_map=colour_dict,
                                     title="Number of Tweets by Week")
     return fig_tweet_count_weekly
 
 
 def plot_tweets_sentiment(df):
-    fig_scatter = px.scatter(df.sort_values(by=['handle']), x = 'subjectivity', y = 'polarity', 
-                            hover_name='break_tweet', color = 'handle', opacity=0.5, 
-                            title = "Sentiment Analysis on Tweets", trendline='ols',size='retweet_count')
+    '''
+    Plots sentiment vs. subjectivity for every tweet.
+    '''
+    fig_scatter = px.scatter(df, x = 'subjectivity', y = 'polarity', 
+                            hover_name='break_tweet', color = 'handle', color_discrete_map=colour_dict, opacity=0.5, 
+                            title = "Tweet Polarity Vs. Subjectivity", trendline='ols')
     return fig_scatter
 
+
 def plot_polarity_dist(df):
-    # sort df
-    df = df.sort_values(by=['handle'])
+    '''
+    Plots a histogram distribution of sentiment for each unique handle.
+    '''
     # define variables
     polarity = []
     tweets = []
     group_labels = []
-    for user in list(df['handle'].unique()):
+    leaders = list(df['handle'].unique())
+    for user in leaders:
         polarity.append(df[df['handle'] == user]['polarity'])
         tweets.append(df[df['handle'] == user]['break_tweet'])
         group_labels.append(user)
     # turn data into lists
     data_dist = polarity
     rug_text = tweets
-    colors = ['#A2AAFD', '#F79B94']
+    colors = [colour_dict[i] for i in leaders]
     # plot
-    fig_hist2 = ff.create_distplot(data_dist, group_labels, show_hist = False, colors = colors, rug_text = rug_text)
-    fig_hist2.update_layout(title_text='Polarity Distribution')
-    return fig_hist2
+    fig = ff.create_distplot(data_dist, group_labels, show_hist = False, colors = colors, rug_text = rug_text)
+    fig.update_layout(title_text='Polarity Distribution')
+    return fig
+
+
+def plot_subjectivity_dist(df):
+    '''
+    Plots a histogram distribution of sentiment for each unique handle.
+    '''
+    # define variables
+    subjectivity = []
+    tweets = []
+    group_labels = []
+    leaders = list(df['handle'].unique())
+    for user in leaders:
+        subjectivity.append(df[df['handle'] == user]['subjectivity'])
+        tweets.append(df[df['handle'] == user]['break_tweet'])
+        group_labels.append(user)
+    # turn data into lists
+    data_dist = subjectivity
+    rug_text = tweets
+    colors = [colour_dict[i] for i in leaders]
+    # plot
+    fig = ff.create_distplot(data_dist, group_labels, show_hist = False, colors = colors, rug_text = rug_text)
+    fig.update_layout(title_text='Subjectivity Distribution')
+    return fig

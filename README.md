@@ -7,13 +7,13 @@ The 2019 Canadian election will be held on Monday, October 21, 2019. This progra
 The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com/](https://cdn-election-sent-app.herokuapp.com/)
 
 
-| Party          | Leader         | Picture                             | Site                                                            |
-|----------------|----------------|-------------------------------------|-----------------------------------------------------------------|
-| Liberals       | Justin Trudeau | ![jt](https://tinyurl.com/y6m89uj7 = 100x100) | [2019.liberal.ca](https://2019.liberal.ca/)                     |
-| Conservatives  | Andrew Scheer  | ![as](https://tinyurl.com/y4yvbyyk = 100x100) | [conservative.ca](https://www.conservative.ca/)                 |
-| NDP            | Jagmeet Singh  | ![js](https://tinyurl.com/y5mkbu3a) | [ndp.ca](https://www.ndp.ca/)                                   |
-| Green Party    | Elizabeth May  | ![em](https://tinyurl.com/yxpowzq8) | [greenparty.ca](https://www.greenparty.ca/en)                   |
-| People's Party | Maxime Bernier | ![mb](https://tinyurl.com/y4wum9nd) | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) |
+| Party          | Leader         | Site                                                            |
+|----------------|----------------|-----------------------------------------------------------------|
+| Liberals       | Justin Trudeau | [2019.liberal.ca](https://2019.liberal.ca/)                     |
+| Conservatives  | Andrew Scheer  | [conservative.ca](https://www.conservative.ca/)                 |
+| NDP            | Jagmeet Singh  | [ndp.ca](https://www.ndp.ca/)                                   |
+| Green Party    | Elizabeth May  | [greenparty.ca](https://www.greenparty.ca/en)                   |
+| People's Party | Maxime Bernier | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) |
 
 
 ## Disclaimer
@@ -72,4 +72,4 @@ pip freeze > requirements.txt # used by Heroku
 
 ## To Do
 
-- correct plot colours for each leader
+- figure out why there are much less tweets for some users (e.g. Elizabeth May). Could be just because they retweet a lot.

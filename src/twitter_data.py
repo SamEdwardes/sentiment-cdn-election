@@ -127,11 +127,6 @@ def tweets_clean_df(df):
     df['date_week'] = df['date'].apply(find_monday)
 
 
-    # FILTERS
-    # keep only english langauge tweets
-    df = df[df['lang'] == 'en']
-
-
     # CLEAN TWEET TEXT
 
     def lemmatize_with_postag(sentence):

@@ -26,30 +26,38 @@ server = app.server
 
 # TWITTER DATA
 # leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
-df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=2)
+df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=4)
 # clean twitter data
 df = tweets_clean_df(df)
+df = df[df['lang'] == 'en'] # keep only english langauge tweets
 df['break_tweet'] = df['full_text'].apply(tweets_break)
 # add sentiment and polarity
 raw_sentiment = get_sentiment(df['full_text'])
 clean_sentiment = get_sentiment(df['clean_tweet'])
 df['polarity'] = clean_sentiment['polarity']
 df['subjectivity'] = clean_sentiment['subjectivity']
+# sort by handle so colours are consistent
+df = df.sort_values(by=['handle'])
+
 
 
 # APP LAYOUT
 app.layout = html.Div([
     html.H2('Canadian 2019 Election Twitter Sentiment Analysis'),
     dcc.Markdown(open("docs/intro.md").read()),
-    html.Hr(),
+    html.H3("Twitter Analysis"),
+    # PLOTS
+    # tweet counts
+    html.H4("How much are our leaders tweeting?"),
+    dcc.Graph(figure = plot_tweets_total(df)),
     dcc.Graph(figure = plot_tweets_time(df)),
-    dcc.Graph(figure = plot_tweets_sentiment(df)),
+    # sentiment
+    html.H4("What is the sentiment of their tweets?"),
+    dcc.Markdown(open("docs/sentiment-explained.md").read()),
     dcc.Graph(figure = plot_polarity_dist(df)),
-    html.Hr(),
-    html.H3("Top 5 Most Negative Tweets for Andrew Scheer:"),
-    generate_table(df[df['handle']=="AndrewScheer"].sort_values(by=['polarity']).head(5)[['handle', 'date', 'full_text','polarity','subjectivity']]),
-    html.H3("Top 5 Most Negative Tweets for Justin Trudeau:"),
-    generate_table(df[df['handle']=="JustinTrudeau"].sort_values(by=['polarity']).head(5)[['handle', 'date', 'full_text','polarity','subjectivity']])
+    dcc.Graph(figure = plot_subjectivity_dist(df)),
+    dcc.Graph(figure = plot_tweets_sentiment(df)),    
+    html.Hr()
 ])
 
 if __name__ == '__main__':
