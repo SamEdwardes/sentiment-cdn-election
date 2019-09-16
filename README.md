@@ -7,13 +7,13 @@ The 2019 Canadian election will be held on Monday, October 21, 2019. This progra
 The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com/](https://cdn-election-sent-app.herokuapp.com/)
 
 
-| Party          | Leader         | Site                                                            |
-|----------------|----------------|-----------------------------------------------------------------|
-| Liberals       | Justin Trudeau | [2019.liberal.ca](https://2019.liberal.ca/)                     |
-| Conservatives  | Andrew Scheer  | [conservative.ca](https://www.conservative.ca/)                 |
-| NDP            | Jagmeet Singh  | [ndp.ca](https://www.ndp.ca/)                                   |
-| Green Party    | Elizabeth May  | [greenparty.ca](https://www.greenparty.ca/en)                   |
-| People's Party | Maxime Bernier | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) |
+| Party          | Leader         | Site                                                            | Twitter Handle                                          |
+|----------------|----------------|-----------------------------------------------------------------|---------------------------------------------------------|
+| Liberals       | Justin Trudeau | [2019.liberal.ca](https://2019.liberal.ca/)                     | [@JustinTrudeau](https://twitter.com/JustinTrudeau)     |
+| Conservatives  | Andrew Scheer  | [conservative.ca](https://www.conservative.ca/)                 | [@AndrewScheer](https://twitter.com/AndrewScheer)       |
+| NDP            | Jagmeet Singh  | [ndp.ca](https://www.ndp.ca/)                                   | [@theJagmeetSingh](https://twitter.com/theJagmeetSingh) |
+| Green Party    | Elizabeth May  | [greenparty.ca](https://www.greenparty.ca/en)                   | [@ElizabethMay](https://twitter.com/ElizabethMay)       |
+| People's Party | Maxime Bernier | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) | [@MaximeBernier](https://twitter.com/MaximeBernier)     |
 
 
 ## Disclaimer
