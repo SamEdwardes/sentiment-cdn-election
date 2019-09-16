@@ -37,9 +37,6 @@ clean_sentiment = get_sentiment(df['clean_tweet'])
 df['polarity'] = clean_sentiment['polarity']
 df['subjectivity'] = clean_sentiment['subjectivity']
 # sort by handle so colours are consistent
-df = df.sort_values(by=['handle'])
-
-
 
 # APP LAYOUT
 app.layout = html.Div([
