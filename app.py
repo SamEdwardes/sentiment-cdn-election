@@ -26,7 +26,7 @@ server = app.server
 
 # TWITTER DATA
 # leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
-df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=4)
+df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=1)
 # clean twitter data
 df = tweets_clean_df(df)
 df = df[df['lang'] == 'en'] # keep only english langauge tweets

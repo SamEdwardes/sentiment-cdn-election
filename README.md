@@ -73,3 +73,4 @@ pip freeze > requirements.txt # used by Heroku
 ## To Do
 
 - figure out why there are much less tweets for some users (e.g. Elizabeth May). Could be just because they retweet a lot.
+- build in logic to read csv first, and only update periodically from twitter
