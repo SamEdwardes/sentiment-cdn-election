@@ -75,7 +75,7 @@ def tweets_get(user_name, num = 200, loops = 1):
                                   trim_user=True,
                                   max_id = max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-        df = pd.concat([df, temp_df])
+        df = pd.concat([df, temp_df], sort=False)
         max_id = df['id'].min()-1
                                 
     return df
@@ -102,7 +102,7 @@ def tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets = 200, num
         df_temp = tweets_get(user_name=user, num=num_tweets, loops=num_loops)
         df_temp['handle'] = user
         # combine dataframes
-        df = pd.concat([df, df_temp])
+        df = pd.concat([df, df_temp], sort=False)
     return df
 
 def tweets_clean_df(df):
