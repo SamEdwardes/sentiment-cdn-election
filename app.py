@@ -33,7 +33,7 @@ if os.path.exists(df_path):
     print("Old twitter data loaded: " + df_path)
 else:
     # leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
-    df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=1)
+    df = tweets_refresh(users=["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"], num_tweets=200, num_loops=4)
     # clean twitter data
     df = tweets_clean_df(df)
     df = df[df['lang'] == 'en'] # keep only english langauge tweets

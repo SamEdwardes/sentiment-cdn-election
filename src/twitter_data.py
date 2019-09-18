@@ -70,8 +70,8 @@ def tweets_get(user_name, num = 200, loops = 1):
     for x in list(range(1, loops+1)):
         raw = api.GetUserTimeline(screen_name = user_name, 
                                   count = num, 
-                                  exclude_replies=True,
-                                  include_rts=False,
+                                  exclude_replies=False,
+                                  include_rts=True,
                                   trim_user=True,
                                   max_id = max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
