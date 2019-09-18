@@ -24,9 +24,8 @@ The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com
 
 ```
 .
-├── Procfile
+├── Procfile # used by Heroku
 ├── README.md
-├── app-local.py #
 ├── app.py # the file used by Heroku to create apps
 ├── data # contains example data
 ├── docs # used by app.py to read in text
@@ -45,8 +44,8 @@ The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com
 Use the following code with terminal to create the appropriate environment.
 
 ```
-conda create --name hello-world-dash-app-env python=3.6.8
-conda activate hello-world-dash-app-env
+conda create --name canadian-election-sentiment-env python=3.6.8
+conda activate canadian-election-sentiment-env
 
 pip install pandas
 pip install dash
@@ -56,7 +55,7 @@ pip install gunicorn
 
 *I originally used conda to install the libraries but for some reason that resulted in deployment errors. When using pip to install everything worked.*
 
-Save the requirements using pip and conda
+Save the requirements using pip
 
 ```
 pip freeze > requirements.txt # used by Heroku
@@ -72,6 +71,7 @@ pip freeze > requirements.txt # used by Heroku
 
 ## To Do
 
-- figure out why there are much less tweets for some users (e.g. Elizabeth May). Could be just because they retweet a lot.
-- build in logic to read csv first, and only update periodically from twitter
-    - should delete old data to save space, or append new data to old?
+- add in data parameter for pulling tweets so that the get_tweets loops back until a certain date is reached. this way we have the same number of tweets for each user
+    - determined E May tweets were so few b/c she retweets so much
+- find a fix so that the heroku web app can execute twitter api call
+    - must take less than 30 seconds or will get an error
