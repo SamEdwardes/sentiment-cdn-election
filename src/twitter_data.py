@@ -76,6 +76,7 @@ def tweets_get(user_name, num = 200, start_date = datetime.date(2019,9,11)):
                 d += datetime.timedelta(-1)
             return d  
         df['date_week'] = df['date'].apply(find_monday)
+
         return df
     
     df = fix_dates(df)
@@ -98,34 +99,6 @@ def tweets_get(user_name, num = 200, start_date = datetime.date(2019,9,11)):
                                 
     return df
 
-
-def tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets = 200, start_date = datetime.date(2019,9,11)):
-    '''
-    Gets new twitter data if no yet downloaded for the current day
-
-    Checks to see if twitter data has been downloaded for the day. If the data has not been downloaded, it will download
-    new twitter data to data/raw and also return the data as a DataFrame. If the data has already been downloaded it will read the latest
-    twitter data from disc and return the dataframe.
-
-    Returns
-    -------
-    DataFrame
-        Contains raw twitter data from GetUserTimeline
-    '''
-    # initialize an empty dataframe
-    df = pd.DataFrame()
-
-    # check to see if twitter data has been downloaded for today yet
-    for user in users:
-        # get twitter data
-        df_temp = tweets_get(user_name=user, num=num_tweets, start_date=start_date)
-        df_temp['handle'] = user
-        # combine dataframes
-        df = pd.concat([df, df_temp], sort=False)
-
-    # filter on start date
-    df = df[df['date'] >= start_date]
-    return df
 
 def tweets_clean_df(df):
     '''
@@ -184,6 +157,7 @@ def tweets_clean_df(df):
     df['clean_tweet'] = tweets.apply(tweets_clean_text)
     return(df)
 
+
 def tweets_break(x):
     '''Loop through a tweet and insert <br> every 60 characters for better spacing'''
     it = 1
@@ -205,6 +179,7 @@ def tweets_break(x):
 
     # concatenate list
     return "".join(clean)
+
 
 def get_sentiment(tweets):
     '''returns a dictionary with sentiment and polarity'''

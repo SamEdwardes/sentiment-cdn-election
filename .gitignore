@@ -8,6 +8,7 @@ twitter-credentials.json
 
 # pycache
 src/__pycache__/*
+__pycache__/*
 
 # notebooks
 .ipynb_checkpoints/*
@@ -20,3 +21,4 @@ notebooks/twitter-api-twython.ipynb
 notebooks/election-tweets-analysis-no-code.ipynb
 notebooks/test.html
 .vscode/*
+
