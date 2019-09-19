@@ -73,3 +73,10 @@ pip freeze > requirements.txt # used by Heroku
 
 - find a fix so that the heroku web app can execute twitter api call
     - must take less than 30 seconds or will get an error
+- add in word clouds analysis
+- improve sentiment analysis
+    - remove urls from tweets
+    - stop stemming words, I don't think this helps sentiment analysis
+- improve formatting of app
+    - add colour background for header
+    - look into having tabs
