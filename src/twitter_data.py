@@ -12,7 +12,7 @@ from textblob import TextBlob, Word
 import twitter
 
 
-def tweets_get(user_name, num = 200, loops = 1):
+def tweets_get(user_name, num = 200, start_date = datetime.date(2019,9,11)):
     '''
     Gets tweets and returns a DataFrame.
 
@@ -65,22 +65,41 @@ def tweets_get(user_name, num = 200, loops = 1):
     # convert into dataframe
     df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
     
+    # fix DATES on dataframe
+    def fix_dates(df):
+        """fixes dates for twitter dataframe"""
+        df['date_time'] = pd.to_datetime(df['created_at'])
+        df['date'] = pd.to_datetime(df['date_time'].dt.date)
+        def find_monday(d):
+            '''Receives a date and returns the date of the preceding Monday.'''
+            while d.weekday()!=0:
+                d += datetime.timedelta(-1)
+            return d  
+        df['date_week'] = df['date'].apply(find_monday)
+        return df
+    
+    df = fix_dates(df)
+    
     # loop through the dataframe x number of times based on the smallest id from the dataframe
     max_id = df['id'].min()-1
-    for x in list(range(1, loops+1)):
+    min_date = df['date'].min()
+    while min_date > start_date:
         raw = api.GetUserTimeline(screen_name = user_name, 
                                   count = num, 
-                                  exclude_replies=False,
-                                  include_rts=True,
+                                  exclude_replies=True,
+                                  include_rts=False,
                                   trim_user=True,
                                   max_id = max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
+        temp_df = fix_dates(temp_df)
         df = pd.concat([df, temp_df], sort=False)
         max_id = df['id'].min()-1
+        min_date = df['date'].min()
                                 
     return df
 
-def tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets = 200, num_loops=1):
+
+def tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets = 200, start_date = datetime.date(2019,9,11)):
     '''
     Gets new twitter data if no yet downloaded for the current day
 
@@ -99,10 +118,13 @@ def tweets_refresh(users=["JustinTrudeau","AndrewScheer"], num_tweets = 200, num
     # check to see if twitter data has been downloaded for today yet
     for user in users:
         # get twitter data
-        df_temp = tweets_get(user_name=user, num=num_tweets, loops=num_loops)
+        df_temp = tweets_get(user_name=user, num=num_tweets, start_date=start_date)
         df_temp['handle'] = user
         # combine dataframes
         df = pd.concat([df, df_temp], sort=False)
+
+    # filter on start date
+    df = df[df['date'] >= start_date]
     return df
 
 def tweets_clean_df(df):
@@ -114,18 +136,6 @@ def tweets_clean_df(df):
     df : pd.DataFrame
         dataframe of twitter data from GetUserTimeline
     '''
-
-    # DATES
-
-    df['date_time'] = pd.to_datetime(df['created_at'])
-    df['date'] = pd.to_datetime(df['date_time'].dt.date)
-    def find_monday(d):
-        '''Receives a date and returns the date of the preceding Monday.'''
-        while d.weekday()!=0:
-            d += datetime.timedelta(-1)
-        return d  
-    df['date_week'] = df['date'].apply(find_monday)
-
 
     # CLEAN TWEET TEXT
 

@@ -71,7 +71,5 @@ pip freeze > requirements.txt # used by Heroku
 
 ## To Do
 
-- add in data parameter for pulling tweets so that the get_tweets loops back until a certain date is reached. this way we have the same number of tweets for each user
-    - determined E May tweets were so few b/c she retweets so much
 - find a fix so that the heroku web app can execute twitter api call
     - must take less than 30 seconds or will get an error
