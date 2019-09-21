@@ -1,3 +1,5 @@
+### 2019 Canadian Election
+
 The 2019 Canadian election will be held on Monday, October 21, 2019. This program analyses twitter data from the party leaders running in the 2019 Canadian election. Two key characteristics for each tweet are measured:
 
 - The **polarity** score is a float within the range [-1.0, 1.0] where **-1.0** is very **negative** and **1.0** is very **positive**.
