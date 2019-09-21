@@ -66,13 +66,13 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 
-colors = {'background': "#F5F5F5",
-          "text": "white",
-          "dark_green": "#3a4f41",
+colors = {"dark_green": "#3a4f41",
           "dark_red": "#b9314f",
           "dark_grey": "#909590",
           "white": "#ffffff",
-          "light_grey": "#d2d7df"
+          "light_grey": "#d2d7df",
+          "other_grey": "#d3d3d3",
+          "alice_blue": "#F0F8FF"
           }
 
 # APP LAYOUT
@@ -80,26 +80,45 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
     # HEADER
     html.Div(className="row", style={'backgroundColor': colors['dark_red'], "padding": 10}, children=[
         html.H2('Canadian 2019 Election Twitter Sentiment Analysis',
-                style={'color': colors['text']})
+                style={'color': colors['white']})
     ]),
     # MAIN BODY
     html.Div(className="row", children=[
         # SIDEBAR
-        html.Div(className="four columns", style={'padding': 20}, children=[
+        html.Div(className="one-third column", style={'padding': 20}, children=[
             dcc.Markdown(open("docs/intro.md").read())]),
         # PLOTS
-        html.Div(className="six columns", style={'padding': 20}, children=[
-            # tweet counts
+        html.Div(className="two-thirds column", style={"backgroundColor": colors['white'], "padding": 20}, children=[
             html.H4("How much are our leaders tweeting?"),
-            dcc.Graph(figure=plot_tweets_total(df)),
-            dcc.Graph(figure=plot_tweets_time(df)),
-            # sentiment
-            html.H4("What is the sentiment of their tweets?"),
-            dcc.Markdown(open("docs/sentiment-explained.md").read()),
-            dcc.Graph(figure=plot_polarity_dist(df)),
-            dcc.Graph(figure=plot_subjectivity_dist(df)),
-            dcc.Graph(figure=plot_tweets_sentiment(df)),
-            html.Hr()
+            # ROW 1 - TWEET COUNTS
+            html.Div(className="row", children=[
+                # ROW 1, COLUMN 1
+                html.Div(className="one-half column", children=[
+                    dcc.Graph(figure=plot_tweets_total(df))
+                ]),
+                # ROW 1, COLUMN 2
+                html.Div(className="one-half column", children=[
+                    dcc.Graph(figure=plot_tweets_time(df))
+                ])
+            ]),
+            # ROW 2 - Sentiment Plot
+            html.Div(className="row", children=[
+                html.Hr(),
+                html.H4("What is the sentiment of their tweets?"),
+                dcc.Markdown(open("docs/sentiment-explained.md").read()),
+                dcc.Graph(figure=plot_tweets_sentiment(df))
+            ]),
+            # ROW 3 - Sentiment Distributions
+            html.Div(className="row", children=[
+                # ROW 2, COLUMN 1
+                html.Div(className="one-half column", children=[
+                    dcc.Graph(figure=plot_polarity_dist(df))
+                ]),
+                # ROW 2, COLUMN 2
+                html.Div(className="one-half column", children=[
+                    dcc.Graph(figure=plot_subjectivity_dist(df))
+                ])     
+            ])     
         ])
     ])
 ])
