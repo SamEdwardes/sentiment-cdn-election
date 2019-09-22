@@ -12,7 +12,7 @@ from textblob import TextBlob, Word
 import twitter
 
 
-def tweets_get(user_name, num = 200, start_date = datetime.date(2019,9,11)):
+def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     '''
     Gets tweets and returns a DataFrame.
 
@@ -33,129 +33,123 @@ def tweets_get(user_name, num = 200, start_date = datetime.date(2019,9,11)):
 
     # GET CREDENTIALS
     path = "twitter-credentials.json"
-    if os.path.exists(path): # if running from local machine
+    if os.path.exists(path):  # if running from local machine
         with open(path, "r") as file:
             creds = json.load(file)
         CONSUMER_KEY = creds['CONSUMER_KEY']
         CONSUMER_SECRET = creds['CONSUMER_SECRET']
         ACCESS_KEY = creds['ACCESS_TOKEN']
         ACCESS_SECRET = creds['ACCESS_SECRET']
-    else: # if running from Heroku
+    else:  # if running from Heroku
         CONSUMER_KEY = environ['CONSUMER_KEY']
         CONSUMER_SECRET = environ['CONSUMER_SECRET']
         ACCESS_KEY = environ['ACCESS_TOKEN']
         ACCESS_SECRET = environ['ACCESS_SECRET']
 
-        
     # establish API
-    api = twitter.Api(consumer_key= CONSUMER_KEY,
-                    consumer_secret= CONSUMER_SECRET,
-                    access_token_key= ACCESS_KEY,
-                    access_token_secret= ACCESS_SECRET,
-                    tweet_mode='extended') 
-    
+    api = twitter.Api(consumer_key=CONSUMER_KEY,
+                      consumer_secret=CONSUMER_SECRET,
+                      access_token_key=ACCESS_KEY,
+                      access_token_secret=ACCESS_SECRET,
+                      tweet_mode='extended')
+
     # get the first batch of twitter data
     # see for api.GetUserTimeline https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
-    raw = api.GetUserTimeline(screen_name = user_name, 
-                             count = num, 
-                             exclude_replies=True,
-                             include_rts=False,
-                             trim_user=True)
+    raw = api.GetUserTimeline(screen_name=user_name,
+                              count=num,
+                              exclude_replies=True,
+                              include_rts=False,
+                              trim_user=True)
 
     # convert into dataframe
     df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-    
+
     # fix DATES on dataframe
     def fix_dates(df):
         """fixes dates for twitter dataframe"""
         df['date_time'] = pd.to_datetime(df['created_at'])
         df['date'] = pd.to_datetime(df['date_time'].dt.date)
+
         def find_monday(d):
             '''Receives a date and returns the date of the preceding Monday.'''
-            while d.weekday()!=0:
+            while d.weekday() != 0:
                 d += datetime.timedelta(-1)
-            return d  
+            return d
         df['date_week'] = df['date'].apply(find_monday)
 
         return df
-    
+
     df = fix_dates(df)
-    
+
     # loop through the dataframe x number of times based on the smallest id from the dataframe
     max_id = df['id'].min()-1
     min_date = df['date'].min()
     while min_date > start_date:
-        raw = api.GetUserTimeline(screen_name = user_name, 
-                                  count = num, 
+        raw = api.GetUserTimeline(screen_name=user_name,
+                                  count=num,
                                   exclude_replies=True,
                                   include_rts=False,
                                   trim_user=True,
-                                  max_id = max_id)
+                                  max_id=max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
         temp_df = fix_dates(temp_df)
         df = pd.concat([df, temp_df], sort=False)
         max_id = df['id'].min()-1
         min_date = df['date'].min()
-                                
+
     return df
 
 
-def tweets_clean_df(df):
+def lemmatize_with_postag(sentence):
     '''
-    Takes raw twitter data and cleans data. Returns new dataframe and saves to data/clean/.
+    https://www.machinelearningplus.com/nlp/lemmatization-examples-python/
+    '''
+    sent = TextBlob(sentence)
+    tag_dict = {"J": 'a',
+                "N": 'n',
+                "V": 'v',
+                "R": 'r'}
+    words_and_tags = [(w, tag_dict.get(pos[0], 'n'))
+                        for w, pos in sent.tags]
+    lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
+    return " ".join(lemmatized_list)
+
+
+def tweets_clean_text(tweet):
+    '''
+    Cleans the actual text of tweet
 
     Parameters
     ----------
-    df : pd.DataFrame
-        dataframe of twitter data from GetUserTimeline
+    tweet : str
+        Any string can be entered
+
+    Returns
+    -------
+    str
+        Clean tweet in all lower case with stop words removed
     '''
-
-    # CLEAN TWEET TEXT
-
-    def lemmatize_with_postag(sentence):
-        '''
-        https://www.machinelearningplus.com/nlp/lemmatization-examples-python/
-        '''
-        sent = TextBlob(sentence)
-        tag_dict = {"J": 'a', 
-                    "N": 'n', 
-                    "V": 'v', 
-                    "R": 'r'}
-        words_and_tags = [(w, tag_dict.get(pos[0], 'n')) for w, pos in sent.tags]    
-        lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
-        return " ".join(lemmatized_list)
-
-    def tweets_clean_text(tweet):
-        '''
-        Cleans the actual text of tweet
-
-        Parameters
-        ----------
-        tweet : str
-            Any string can be entered
-
-        Returns
-        -------
-        str
-            Clean tweet in all lower case with stop words removed
-        '''
-        # convert into a text blob object
-        tweet = TextBlob(tweet)
-        # create a word list: make lower case, singularize
-        tweet = tweet.words.lower().singularize()
-        # remove stop words
-        stop_words = nltk.corpus.stopwords.words('english')
-        tweet = [word for word in tweet if word not in stop_words]
-        tweet = TextBlob(' '.join(tweet)).words
-        # Lemmatize
-        tweet = TextBlob(lemmatize_with_postag(' '.join(tweet))).words
-        tweet = ' '.join(tweet)
-        return(tweet)
-    
-    # run functions, save dataframe, and return dataframe
-    tweets = df['full_text']
-    df['clean_tweet'] = tweets.apply(tweets_clean_text)
-    return(df)
+    # remove urls (https://stackoverflow.com/questions/24399820/expression-to-remove-url-links-from-twitter-tweet)
+    tweet = re.sub(r"http\S+", "", tweet)
+    # remove non alpha/numeric characters
+    tweet = re.sub(r"[^a-zA-Z0-9\s]", "", tweet)   
+    # Make lower case
+    tweet = TextBlob(tweet)
+    tweet = tweet.words.lower()
+    # remove stop words
+    stop_words = nltk.corpus.stopwords.words('english')
+    tweet = [word for word in tweet if word not in stop_words]
+    tweet = TextBlob(' '.join(tweet)).words
+    tweet = ' '.join(tweet)
+    # remove specific characters
+    tweet = re.sub(r" amp ", "", tweet) # amp = &
+    tweet = re.sub(r"'", "", tweet)
+    tweet = re.sub(r"’", "", tweet)
+    tweet = re.sub(r"–", " ", tweet)
+    tweet = re.sub(r"    ", " ", tweet)
+    tweet = re.sub(r"   ", " ", tweet)
+    tweet = re.sub(r"  ", " ", tweet)
+    return(tweet)
 
 
 def tweets_break(x):
@@ -168,11 +162,11 @@ def tweets_break(x):
 
     while it <= num_loops:
         i = x[start:stop]+"<br>"
-        clean += i # append to list
+        clean += i  # append to list
         # update positions
         it += 1
         start = stop
-        stop = start +60
+        stop = start + 60
 
         if stop > len(x)-1:
             stop = len(x)-1
@@ -191,5 +185,24 @@ def get_sentiment(tweets):
         polarity.append(pol)
         subj = tweet.sentiment.subjectivity
         subjectivity.append(subj)
-        
-    return {'polarity': polarity, 'subjectivity': subjectivity} 
+
+    return {'polarity': polarity, 'subjectivity': subjectivity}
+
+
+def get_word_counts(tweets_df):
+    """
+    Calculates the word counts for a string
+
+    Parameters:
+    -----------
+    tweets_df -- (list) a list of tweets, or column from dataframe of tweets
+
+    Returns:
+    --------
+    Dictionary with word count
+    """
+    words = " ".join(list(tweets_df))
+    counts = TextBlob(words).word_counts
+    counts_df = pd.DataFrame.from_dict(dict(counts), orient="index")
+    counts_df = counts_df.sort_values(by=[0], ascending=False)
+    return counts_df

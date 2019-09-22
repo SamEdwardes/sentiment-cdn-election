@@ -21,10 +21,10 @@ from src.twitter_plots import *
 ###########################################
 # DATA STUFF
 ###########################################
-
-# TWITTER DATA
+# 
+# GET TWITTER DATA
 if socket.gethostname() == "Sams-MacBook-Pro.local":
-    update_tweets = False
+    update_tweets = False # switch here for testing!!!!
 else:
     update_tweets = False
 # leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
@@ -43,19 +43,22 @@ else:
         df_temp = tweets_get(user_name=user, num=200, start_date=start_date)
         df_temp['handle'] = user
         df = pd.concat([df, df_temp], sort=False)
-    # clean twitter data
-    df = df[df['date'] >= start_date]
-    df = df[df['lang'] == 'en']  # keep only english langauge tweets
-    df = tweets_clean_df(df)
-    df['break_tweet'] = df['full_text'].apply(tweets_break)
-    # add sentiment and polarity
-    raw_sentiment = get_sentiment(df['full_text'])
-    clean_sentiment = get_sentiment(df['clean_tweet'])
-    df['polarity'] = clean_sentiment['polarity']
-    df['subjectivity'] = clean_sentiment['subjectivity']
-    # download
-    df.to_csv(df_path, index=False)
+        df.to_csv(df_path, index=False)
 
+# CLEAN TWITTER DATA
+print("Analysing twitter data...")
+df['date_time'] = pd.to_datetime(df['created_at'])
+df['date'] = pd.to_datetime(df['date_time'].dt.date)
+df = df[df['date'] >= start_date]
+df = df[df['lang'] == 'en']  # keep only english langauge tweets
+df['clean_tweet'] = df['full_text'].apply(tweets_clean_text)
+df['break_tweet'] = df['full_text'].apply(tweets_break)
+# add sentiment and polarity
+raw_sentiment = get_sentiment(df['full_text'])
+clean_sentiment = get_sentiment(df['clean_tweet'])
+df['polarity'] = clean_sentiment['polarity']
+df['subjectivity'] = clean_sentiment['subjectivity']
+    
 
 ###########################################
 # APP STUFF
