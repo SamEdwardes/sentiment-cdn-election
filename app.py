@@ -18,13 +18,14 @@ import twitter
 from src.twitter_data import *
 from src.twitter_plots import *
 
+
 ###########################################
-# DATA STUFF
+# GETTING DATA
 ###########################################
-# 
+
 # GET TWITTER DATA
 if socket.gethostname() == "Sams-MacBook-Pro.local":
-    update_tweets = False # switch here for testing!!!!
+    update_tweets = True  # !!!!SWITCH HERE FOR TESTING!!!! set to True to load new twitter data
 else:
     update_tweets = False
 # leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
@@ -45,7 +46,12 @@ else:
         df = pd.concat([df, df_temp], sort=False)
         df.to_csv(df_path, index=False)
 
-# CLEAN TWITTER DATA
+
+###########################################
+# ANALYSING TWITTER DATA
+###########################################
+
+# clean twitter data
 print("Analysing twitter data...")
 df['date_time'] = pd.to_datetime(df['created_at'])
 df['date'] = pd.to_datetime(df['date_time'].dt.date)
@@ -53,12 +59,39 @@ df = df[df['date'] >= start_date]
 df = df[df['lang'] == 'en']  # keep only english langauge tweets
 df['clean_tweet'] = df['full_text'].apply(tweets_clean_text)
 df['break_tweet'] = df['full_text'].apply(tweets_break)
+
 # add sentiment and polarity
 raw_sentiment = get_sentiment(df['full_text'])
 clean_sentiment = get_sentiment(df['clean_tweet'])
 df['polarity'] = clean_sentiment['polarity']
 df['subjectivity'] = clean_sentiment['subjectivity']
-    
+
+# word counts
+df_word_count_totals = get_word_counts(df['clean_tweet'])
+df_word_count_totals.columns = ['word', 'total_count']
+df_word_count = pd.DataFrame()
+for i in users:
+    temp = get_word_counts(df[df['handle'] == i]['clean_tweet'])
+    temp['handle'] = i
+    df_word_count = pd.concat([temp, df_word_count])
+df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
+                         on='word')
+df_word_count = df_word_count.sort_values(
+    by=['total_count'], ascending=False).reset_index(drop=True).head(200)
+
+# phrase counts
+df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
+df_phrase_count_total.columns = ['phrase', 'total_count']
+df_phrase_count = pd.DataFrame()
+for i in users:
+    temp = get_phrase_counts(df[df['handle'] == i]['clean_tweet'])
+    temp['handle'] = i
+    df_phrase_count = pd.concat([temp, df_phrase_count])
+df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
+                           on='phrase')
+df_phrase_count = df_phrase_count.sort_values(
+    by=['total_count'], ascending=False).reset_index(drop=True).head(100)
+
 
 ###########################################
 # APP STUFF
@@ -77,6 +110,12 @@ colors = {"dark_green": "#3a4f41",
           "other_grey": "#d3d3d3",
           "alice_blue": "#F0F8FF"
           }
+
+colour_dict = {'JustinTrudeau': '#D91A20',
+               'AndrewScheer': '#1A4E89',
+               'ElizabethMay': '#42A03A',
+               "theJagmeetSingh": '#F29F24',
+               'MaximeBernier': '#A9A9A9'}
 
 # APP LAYOUT
 app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=[
@@ -113,19 +152,28 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
             ]),
             # ROW 3 - Sentiment Distributions
             html.Div(className="row", children=[
-                # ROW 2, COLUMN 1
+                # ROW 3, COLUMN 1
                 html.Div(className="one-half column", children=[
                     dcc.Graph(figure=plot_polarity_dist(df))
                 ]),
-                # ROW 2, COLUMN 2
+                # ROW 3, COLUMN 2
                 html.Div(className="one-half column", children=[
                     dcc.Graph(figure=plot_subjectivity_dist(df))
-                ])     
-            ])     
+                ])
+            ]),
+            # ROW 4 - WORD COUNTS
+            html.Div(className="row", children=[
+                html.Hr(),
+                html.H4("What are our leaders tweeting about?"),
+                html.Br(),
+                dcc.Graph(figure=plot_word_count_bar_stack(df_word_count)),
+                html.Br(),
+                dcc.Graph(figure=plot_phrase_count_bar_stack(df_phrase_count))
+            ])
         ])
     ])
 ])
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

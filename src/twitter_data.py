@@ -110,7 +110,7 @@ def lemmatize_with_postag(sentence):
                 "V": 'v',
                 "R": 'r'}
     words_and_tags = [(w, tag_dict.get(pos[0], 'n'))
-                        for w, pos in sent.tags]
+                      for w, pos in sent.tags]
     lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
     return " ".join(lemmatized_list)
 
@@ -132,7 +132,7 @@ def tweets_clean_text(tweet):
     # remove urls (https://stackoverflow.com/questions/24399820/expression-to-remove-url-links-from-twitter-tweet)
     tweet = re.sub(r"http\S+", "", tweet)
     # remove non alpha/numeric characters
-    tweet = re.sub(r"[^a-zA-Z0-9\s]", "", tweet)   
+    tweet = re.sub(r"[^a-zA-Z0-9\s]", "", tweet)
     # Make lower case
     tweet = TextBlob(tweet)
     tweet = tweet.words.lower()
@@ -142,7 +142,7 @@ def tweets_clean_text(tweet):
     tweet = TextBlob(' '.join(tweet)).words
     tweet = ' '.join(tweet)
     # remove specific characters
-    tweet = re.sub(r" amp ", "", tweet) # amp = &
+    tweet = re.sub(r" amp ", "", tweet)  # amp = &
     tweet = re.sub(r"'", "", tweet)
     tweet = re.sub(r"’", "", tweet)
     tweet = re.sub(r"–", " ", tweet)
@@ -205,4 +205,38 @@ def get_word_counts(tweets_df):
     counts = TextBlob(words).word_counts
     counts_df = pd.DataFrame.from_dict(dict(counts), orient="index")
     counts_df = counts_df.sort_values(by=[0], ascending=False)
+    counts_df.reset_index(level=0, inplace=True)
+    counts_df.columns = ['word', 'count']
+    return counts_df
+
+
+def get_phrase_counts(tweets_df):
+    """
+    Calculates the word counts for a string
+
+    Parameters:
+    -----------
+    tweets_df -- (list) a list of tweets, or column from dataframe of tweets
+
+    Returns:
+    --------
+    Dictionary with phrase count
+    """
+    # get ngrams
+    words = " ".join(list(tweets_df))
+    ngram_2 = TextBlob(words).ngrams(n=2)
+    ngram_3 = TextBlob(words).ngrams(n=3)
+    ngram_4 = TextBlob(words).ngrams(n=4)
+    ngrams = ngram_2 + ngram_3 + ngram_4
+    # do word count on ngrams
+    phrases = []
+    for i in ngrams:
+        phrases.append("_".join(i))
+    phrases = " ".join(list(phrases))
+    counts = TextBlob(phrases).word_counts
+    # turn into dataframe
+    counts_df = pd.DataFrame.from_dict(dict(counts), orient="index")
+    counts_df = counts_df.sort_values(by=[0], ascending=False)
+    counts_df.reset_index(level=0, inplace=True)
+    counts_df.columns = ['phrase', 'count']
     return counts_df
