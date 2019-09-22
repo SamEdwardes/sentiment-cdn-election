@@ -3,8 +3,11 @@ import plotly.figure_factory as ff
 import dash_html_components as html
 
 # colours for eachleader
-colour_dict = {'JustinTrudeau': '#D91A20', 'AndrewScheer': '#1A4E89',
-               'ElizabethMay': '#42A03A', "theJagmeetSingh": '#F29F24', 'MaximeBernier': '#A9A9A9'}
+colour_dict = {'JustinTrudeau': '#D91A20',
+               'AndrewScheer': '#1A4E89',
+               'ElizabethMay': '#42A03A',
+               "theJagmeetSingh": '#F29F24',
+               'MaximeBernier': '#A9A9A9'}
 
 colors = {"dark_green": "#3a4f41",
           "dark_red": "#b9314f",
@@ -39,7 +42,7 @@ def plot_tweets_total(df):
                  y='number of tweets', color="handle", color_discrete_map=colour_dict,
                  title="Number of Tweets", height=400)
     fig.update_layout({"showlegend": False})
-    fig.update_layout( margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
     return(fig)
 
 
@@ -55,7 +58,7 @@ def plot_tweets_time(df):
                   y='number of tweets', color="handle", color_discrete_map=colour_dict,
                   title="Number of Tweets by Week", height=400)
     fig.update_layout({"showlegend": False})
-    fig.update_layout( margin=dict(l=0, r=0, t=30, b=30))
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30))
     return fig
 
 
@@ -90,7 +93,7 @@ def plot_polarity_dist(df):
     fig = ff.create_distplot(data_dist, group_labels,
                              show_hist=False, colors=colors, rug_text=rug_text)
     fig.update_layout(title_text='Polarity Distribution')
-    fig.update_layout( margin=dict(l=0, r=0, t=30, b=30))
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30))
     fig.update_layout({"showlegend": False})
     return fig
 
@@ -116,6 +119,26 @@ def plot_subjectivity_dist(df):
     fig = ff.create_distplot(data_dist, group_labels,
                              show_hist=False, colors=colors, rug_text=rug_text)
     fig.update_layout(title_text='Subjectivity Distribution')
-    fig.update_layout( margin=dict(l=0, r=0, t=30, b=30))
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30))
     fig.update_layout({"showlegend": False})
     return fig
+
+
+def plot_word_count_bar_stack(df):
+    fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
+                 title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
+    fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
+                                 categoryorder='array', categoryarray=list(dict.fromkeys(list(df['word'])))))
+    fig.update_layout({"showlegend": True})
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+    return(fig)
+
+
+def plot_phrase_count_bar_stack(df):
+    fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
+                 title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
+    fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
+                                 categoryorder='array', categoryarray=list(dict.fromkeys(list(df['phrase'])))))
+    fig.update_layout({"showlegend": True})
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+    return(fig)

@@ -10,10 +10,10 @@ The 2019 Canadian election will be held on Monday, October 21, 2019. This progra
 
 ### Parties and Leaders
 
-| Party          | Leader         | Site                                                            | Twitter Handle                                          |
-|----------------|----------------|-----------------------------------------------------------------|---------------------------------------------------------|
-| Liberals       | Justin Trudeau | [2019.liberal.ca](https://2019.liberal.ca/)                     | [@JustinTrudeau](https://twitter.com/JustinTrudeau)     |
-| Conservatives  | Andrew Scheer  | [conservative.ca](https://www.conservative.ca/)                 | [@AndrewScheer](https://twitter.com/AndrewScheer)       |
-| NDP            | Jagmeet Singh  | [ndp.ca](https://www.ndp.ca/)                                   | [@theJagmeetSingh](https://twitter.com/theJagmeetSingh) |
-| Green Party    | Elizabeth May  | [greenparty.ca](https://www.greenparty.ca/en)                   | [@ElizabethMay](https://twitter.com/ElizabethMay)       |
-| People's Party | Maxime Bernier | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) | [@MaximeBernier](https://twitter.com/MaximeBernier)     |
+| Party                                                  | Leader                                                  |
+|--------------------------------------------------------|---------------------------------------------------------|
+| [Liberals](https://2019.liberal.ca/)                   | [@JustinTrudeau](https://twitter.com/JustinTrudeau)     |
+| [Conservatives](https://www.conservative.ca/)          | [@AndrewScheer](https://twitter.com/AndrewScheer)       |
+| [NDP](https://www.ndp.ca/)                             | [@theJagmeetSingh](https://twitter.com/theJagmeetSingh) |
+| [Green Party](https://www.greenparty.ca/en)            | [@ElizabethMay](https://twitter.com/ElizabethMay)       |
+| [People's Party](https://www.peoplespartyofcanada.ca/) | [@MaximeBernier](https://twitter.com/MaximeBernier)     |
