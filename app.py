@@ -25,7 +25,7 @@ from src.twitter_plots import *
 
 # GET TWITTER DATA
 if socket.gethostname() == "Sams-MacBook-Pro.local":
-    update_tweets = True  # !!!!SWITCH HERE FOR TESTING!!!! set to True to load new twitter data
+    update_tweets = False  # !!!!SWITCH HERE FOR TESTING!!!! set to True to load new twitter data
 else:
     update_tweets = False
 # leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
