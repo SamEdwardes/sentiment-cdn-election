@@ -15,6 +15,7 @@ The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com
 | Green Party    | Elizabeth May  | [greenparty.ca](https://www.greenparty.ca/en)                   | [@ElizabethMay](https://twitter.com/ElizabethMay)       |
 | People's Party | Maxime Bernier | [peoplespartyofcanada.ca](https://www.peoplespartyofcanada.ca/) | [@MaximeBernier](https://twitter.com/MaximeBernier)     |
 
+![app-screenshot](https://i.imgur.com/GXEViQX.png)
 
 ## Disclaimer
 
