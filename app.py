@@ -19,24 +19,38 @@ from src.twitter_data import *
 from src.twitter_plots import *
 
 
+update_tweets = False
+update_analysis = False
+
+df_path_raw = "data/twitter-data-raw.csv"
+df_path_clean = "data/twitter-data-clean.csv"
+df_path_word_count = "data/word-count.csv"
+df_path_phrase_count = "data/phrase-count.csv"
+
+start_date = datetime.date(2019, 8, 5)  # election officially starts on sep 11
+users = ["JustinTrudeau", "AndrewScheer",
+         "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
+
+
 ###########################################
 # GETTING DATA
 ###########################################
 
-# GET TWITTER DATA
-if socket.gethostname() == "Sams-MacBook-Pro.local":
-    update_tweets = False  # !!!!SWITCH HERE FOR TESTING!!!! set to True to load new twitter data
-else:
+# check environment
+if socket.gethostname() != "Sams-MacBook-Pro.local":
     update_tweets = False
-# leaders: ["JustinTrudeau", "AndrewScheer", "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
-users = ["JustinTrudeau", "AndrewScheer",
-         "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
-start_date = datetime.date(2019, 8, 5)  # election officially starts on sep 11
-df_path = "data/twitter-data.csv"
+    update_analysis = False
+
+# read or get new twitter data
 print("Getting twitter data...")
-if update_tweets == False:
-    print("\tReading old twitter data from disk.")
-    df = pd.read_csv(df_path)
+if update_tweets == False and update_analysis == False:
+    print("\tReading old clean twitter data from disk.")
+    df = pd.read_csv(df_path_clean)
+    df_word_count = pd.read_csv(df_path_word_count)
+    df_phrase_count = pd.read_csv(df_path_phrase_count)
+elif update_tweets == False and update_analysis == True:
+    print("\tReading old raw twitter data from disk.")
+    df = pd.read_csv(df_path_raw)
 else:
     print("\tGetting new twitter data from Twitter API.")
     df = pd.DataFrame()
@@ -44,54 +58,59 @@ else:
         df_temp = tweets_get(user_name=user, num=200, start_date=start_date)
         df_temp['handle'] = user
         df = pd.concat([df, df_temp], sort=False)
-        df.to_csv(df_path, index=False)
+        df.to_csv(df_path_raw, index=False)
 
 
 ###########################################
 # ANALYSING TWITTER DATA
 ###########################################
 
-# clean twitter data
-print("Analysing twitter data...")
-df['date_time'] = pd.to_datetime(df['created_at'])
-df['date'] = pd.to_datetime(df['date_time'].dt.date)
-df = df[df['date'] >= start_date]
-df = df[df['lang'] == 'en']  # keep only english langauge tweets
-df['clean_tweet'] = df['full_text'].apply(tweets_clean_text)
-df['break_tweet'] = df['full_text'].apply(tweets_break)
+if update_analysis == True:
+    # clean twitter data
+    print("Analysing twitter data...")
+    df['date_time'] = pd.to_datetime(df['created_at'])
+    df['date'] = pd.to_datetime(df['date_time'].dt.date)
+    df = df[df['date'] >= start_date]
+    df = df[df['lang'] == 'en']  # keep only english langauge tweets
+    df['clean_tweet'] = df['full_text'].apply(tweets_clean_text)
+    df['break_tweet'] = df['full_text'].apply(tweets_break)
 
-# add sentiment and polarity
-raw_sentiment = get_sentiment(df['full_text'])
-clean_sentiment = get_sentiment(df['clean_tweet'])
-df['polarity'] = clean_sentiment['polarity']
-df['subjectivity'] = clean_sentiment['subjectivity']
+    # add sentiment and polarity
+    raw_sentiment = get_sentiment(df['full_text'])
+    clean_sentiment = get_sentiment(df['clean_tweet'])
+    df['polarity'] = clean_sentiment['polarity']
+    df['subjectivity'] = clean_sentiment['subjectivity']
 
-# word counts
-df_word_count_totals = get_word_counts(df['clean_tweet'])
-df_word_count_totals.columns = ['word', 'total_count']
-df_word_count = pd.DataFrame()
-for i in users:
-    temp = get_word_counts(df[df['handle'] == i]['clean_tweet'])
-    temp['handle'] = i
-    df_word_count = pd.concat([temp, df_word_count])
-df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
-                         on='word')
-df_word_count = df_word_count.sort_values(
-    by=['total_count'], ascending=False).reset_index(drop=True).head(200)
+    # word counts
+    df_word_count_totals = get_word_counts(df['clean_tweet'])
+    df_word_count_totals.columns = ['word', 'total_count']
+    df_word_count = pd.DataFrame()
+    for i in users:
+        temp = get_word_counts(df[df['handle'] == i]['clean_tweet'])
+        temp['handle'] = i
+        df_word_count = pd.concat([temp, df_word_count])
+    df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
+                             on='word')
+    df_word_count = df_word_count.sort_values(
+        by=['total_count'], ascending=False).reset_index(drop=True).head(200)
 
-# phrase counts
-df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
-df_phrase_count_total.columns = ['phrase', 'total_count']
-df_phrase_count = pd.DataFrame()
-for i in users:
-    temp = get_phrase_counts(df[df['handle'] == i]['clean_tweet'])
-    temp['handle'] = i
-    df_phrase_count = pd.concat([temp, df_phrase_count])
-df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
-                           on='phrase')
-df_phrase_count = df_phrase_count.sort_values(
-    by=['total_count'], ascending=False).reset_index(drop=True).head(100)
+    # phrase counts
+    df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
+    df_phrase_count_total.columns = ['phrase', 'total_count']
+    df_phrase_count = pd.DataFrame()
+    for i in users:
+        temp = get_phrase_counts(df[df['handle'] == i]['clean_tweet'])
+        temp['handle'] = i
+        df_phrase_count = pd.concat([temp, df_phrase_count])
+    df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
+                               on='phrase')
+    df_phrase_count = df_phrase_count.sort_values(
+        by=['total_count'], ascending=False).reset_index(drop=True).head(100)
 
+    # export clean data
+    df.to_csv(df_path_clean, index=False)
+    df_word_count.to_csv(df_path_word_count, index=False)
+    df_phrase_count.to_csv(df_path_phrase_count, index=False)
 
 ###########################################
 # APP STUFF
