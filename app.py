@@ -19,8 +19,8 @@ from src.twitter_data import *
 from src.twitter_plots import *
 
 
-update_tweets = False
-update_analysis = False
+update_tweets = True
+update_analysis = True
 
 df_path_raw = "data/twitter-data-raw.csv"
 df_path_clean = "data/twitter-data-clean.csv"
@@ -38,8 +38,9 @@ users = ["JustinTrudeau", "AndrewScheer",
 
 # check environment
 if socket.gethostname() != "Sams-MacBook-Pro.local":
-    update_tweets = False
-    update_analysis = False
+    if socket.gethostname() != "dhcp-206-87-114-237.ubcsecure.wireless.ubc.ca":
+        update_tweets = False
+        update_analysis = False
 
 # read or get new twitter data
 print("Getting twitter data...")
