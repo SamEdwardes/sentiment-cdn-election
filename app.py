@@ -21,7 +21,7 @@ from src.twitter_plots import *
 
 
 update_tweets = False
-update_analysis = True
+update_analysis = False
 
 df_path_raw = "data/twitter-data-raw.csv"
 df_path_clean = "data/twitter-data-clean.csv"
@@ -89,16 +89,22 @@ if update_analysis == True:
     may_search = ["may", "elizabeth", "ElizabethMay"]
     singh_search = ["singh", "jagmeet", "jagmeetsingh", "theJagmeetSingh"]
     bernier_search = ["bernier", "maxime", "MaximeBernier"]
-    df["about_trudeau"] = df["full_text"].apply(word_search, search_words = justin_search)
-    df["about_scheer"] = df["full_text"].apply(word_search, search_words = scheer_search)
-    df["about_may"] = df["full_text"].apply(word_search, search_words = may_search)
-    df["about_singh"] = df["full_text"].apply(word_search, search_words = singh_search)
-    df["about_bernier"] = df["full_text"].apply(word_search, search_words = bernier_search)
+    df["about_trudeau"] = df["full_text"].apply(
+        word_search, search_words=justin_search)
+    df["about_scheer"] = df["full_text"].apply(
+        word_search, search_words=scheer_search)
+    df["about_may"] = df["full_text"].apply(
+        word_search, search_words=may_search)
+    df["about_singh"] = df["full_text"].apply(
+        word_search, search_words=singh_search)
+    df["about_bernier"] = df["full_text"].apply(
+        word_search, search_words=bernier_search)
 
     # word counts
     df_word_count_totals = get_word_counts(df['clean_tweet'])
     df_word_count_totals.columns = ['word', 'total_count']
-    df_word_count_totals['rank'] = df_word_count_totals['total_count'].rank(ascending=False, method="first")
+    df_word_count_totals['rank'] = df_word_count_totals['total_count'].rank(
+        ascending=False, method="first")
     df_word_count = pd.DataFrame()
     for i in users:
         temp = get_word_counts(df[df['handle'] == i]['clean_tweet'])
@@ -113,7 +119,8 @@ if update_analysis == True:
     # phrase counts
     df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
     df_phrase_count_total.columns = ['phrase', 'total_count']
-    df_phrase_count_total['rank'] = df_phrase_count_total['total_count'].rank(ascending=False, method="first")
+    df_phrase_count_total['rank'] = df_phrase_count_total['total_count'].rank(
+        ascending=False, method="first")
     df_phrase_count = pd.DataFrame()
     for i in users:
         temp = get_phrase_counts(df[df['handle'] == i]['clean_tweet'])
@@ -174,11 +181,11 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
     # MAIN BODY
     html.Div(className="row", children=[
         # SIDEBAR
-        html.Div(className="one-third column", style={'padding': 20}, children=[
+        html.Div(className="three columns", style={'padding': 20}, children=[
             dcc.Markdown(open("docs/intro.md").read())]),
         # PLOTS
-        html.Div(className="two-thirds column", style={"backgroundColor": colors['white'], "padding": 20}, children=[
-            html.H4("How much are our leaders tweeting?"),
+        html.Div(className="nine columns", style={"backgroundColor": colors['white'], "padding": 20}, children=[
+            html.H4("How much are the leaders tweeting?"),
             # ROW 1 - TWEET COUNTS
             html.Div(className="row", children=[
                 # ROW 1, COLUMN 1
@@ -208,27 +215,51 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                     dcc.Graph(figure=plot_subjectivity_dist(df))
                 ])
             ]),
-            # ROW 4 - WORD COUNTS
+            # ROW 4 - About eachother
             html.Div(className="row", children=[
                 html.Hr(),
-                html.H4("What are our leaders tweeting about?"),
-                html.Br(),
-                # Word count bar chart
-                dcc.Dropdown(id='word-count-drop-down', options=leaders_dropdown, value="All"),
-                html.Br(),
-                dcc.Graph(id='word-count-bar'),
-                html.Br(),
-                # Phrase count bar chart
-                dcc.Dropdown(id='phrase-count-drop-down', options=leaders_dropdown, value="All"),
-                html.Br(),
-                dcc.Graph(id='phrase-count-bar'),
-                html.Br(),
-                # Tweets about eachother
-                dcc.Graph(figure=plot_about_eachother_heatmap(df))
+                html.H4("What are the leaders tweeting about?"),
+                html.Br()
+            ]),
+            # ROW 6 - Tweet word and phrase counts title
+            html.Div(className="row", children=[
+                # ROW 6, COLUMN 1
+                html.Div(className="one-half column", children=[
+                    dcc.Markdown(open("docs/tweeting-about.md").read()),
+                    html.Br()
+                ]),
+                # ROW 6, COLUMN 2
+                html.Div(className="one-half column", children=[
+                    # Tweets about eachother
+                    dcc.Graph(figure=plot_about_eachother_heatmap(df)),
+                    html.Br()
+                ]),
+            ]),
+            # ROW 7 - Tweet counts
+            html.Div(className="row", children=[
+                # ROW 7, COLUMN 1
+                html.Div(className="one-half column", children=[
+                    # Word count bar chart
+                    dcc.Dropdown(id='word-count-drop-down',
+                                 options=leaders_dropdown, value="All"),
+                    html.Br(),
+                    dcc.Graph(id='word-count-bar'),
+                    html.Br()
+                ]),
+                # ROW 7, COLUMN 2
+                html.Div(className="one-half column", children=[
+                    # Phrase count bar chart
+                    dcc.Dropdown(id='phrase-count-drop-down',
+                                 options=leaders_dropdown, value="All"),
+                    html.Br(),
+                    dcc.Graph(id='phrase-count-bar'),
+                    html.Br()
+                ])
             ])
         ])
     ])
 ])
+
 
 ###########################################
 # APP CALL BACKS
@@ -247,16 +278,18 @@ def plot_word_count_bar_stack(filter_selection):
     df = df_word_count
     if filter_selection != "All":
         df = df[df["handle"] == filter_selection]
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(50)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(
+            drop=True).head(50)
     else:
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True)
+        df = df.sort_values(by=['total_count'],
+                            ascending=False).reset_index(drop=True)
         df = df[df['rank'] <= 50]
 
     fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
                  title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
-    fig.update_layout({"showlegend": True})
+    fig.update_layout({"showlegend": False})
     fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
-    fig.update_yaxes(categoryorder="total ascending")
+    fig.update_yaxes(categoryorder="total ascending", title_text="")
     return(fig)
 
 
@@ -272,16 +305,18 @@ def plot_phrase_count_bar_stack(filter_selection):
     df = df_phrase_count
     if filter_selection != "All":
         df = df[df["handle"] == filter_selection]
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(50)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(
+            drop=True).head(50)
     else:
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True)
+        df = df.sort_values(by=['total_count'],
+                            ascending=False).reset_index(drop=True)
         df = df[df['rank'] <= 50]
 
     fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
                  title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
-    fig.update_layout({"showlegend": True})
-    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
-    fig.update_yaxes(categoryorder="total ascending")
+    fig.update_layout({"showlegend": False})
+    fig.update_layout(autosize=True, margin=dict(l=0, r=0, t=30, b=30))
+    fig.update_yaxes(categoryorder="total ascending", title_text="")
     return(fig)
 
 

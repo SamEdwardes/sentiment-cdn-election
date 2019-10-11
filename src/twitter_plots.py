@@ -131,14 +131,13 @@ def plot_about_eachother_heatmap(df):
     '''
     Plots a heatmap about how much they are tweeting about eachother
     '''
-
-    df = df[["handle", "about_scheer", "about_may", "about_trudeau", "about_bernier",  "about_singh"]]
+    df = df[["handle", "about_scheer", "about_may",
+             "about_trudeau", "about_bernier",  "about_singh"]]
     df = df.groupby(['handle']).sum()
     fig = go.Figure(data=go.Heatmap(
-        z = df.values,
-        x = df.columns,
-        y = df.index
+        z=df.values,
+        x=df.columns,
+        y=df.index
     ))
     fig.update_layout(title_text='Tweets About Eachother')
-
     return fig

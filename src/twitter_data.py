@@ -70,18 +70,18 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     # LOADING TWITTER DATA
     ###########################################
 
-    def load_tweets(n_max_id = 0):
+    def load_tweets(n_max_id=0):
         """
         Read raw data from twitter
 
         see for api.GetUserTimeline https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
         """
         raw = api.GetUserTimeline(screen_name=user_name,
-                                count=num,
-                                exclude_replies=True,
-                                include_rts=False,
-                                trim_user=True,
-                                max_id= n_max_id)
+                                  count=num,
+                                  exclude_replies=True,
+                                  include_rts=False,
+                                  trim_user=True,
+                                  max_id=n_max_id)
         return raw
 
     # get the first batch of twitter data
@@ -101,6 +101,7 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
         min_date = df['date'].min()
 
     return df
+
 
 def lemmatize_with_postag(sentence):
     '''
@@ -228,8 +229,7 @@ def get_phrase_counts(tweets_df):
     words = " ".join(list(tweets_df))
     ngram_2 = TextBlob(words).ngrams(n=2)
     ngram_3 = TextBlob(words).ngrams(n=3)
-    ngram_4 = TextBlob(words).ngrams(n=4)
-    ngrams = ngram_2 + ngram_3 + ngram_4
+    ngrams = ngram_2 + ngram_3
     # do word count on ngrams
     phrases = []
     for i in ngrams:
@@ -260,5 +260,5 @@ def word_search(text, search_words):
     for i in search_words:
         if i.lower() in text.lower():
             return True
-    
+
     return False
