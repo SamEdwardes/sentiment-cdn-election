@@ -31,7 +31,7 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     Dataframe with twitter data
     '''
 
-    # GET CREDENTIALS
+    # API CREDENTIALS
     path = "twitter-credentials.json"
     if os.path.exists(path):  # if running from local machine
         with open(path, "r") as file:
@@ -45,52 +45,55 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
         CONSUMER_SECRET = environ['CONSUMER_SECRET']
         ACCESS_KEY = environ['ACCESS_TOKEN']
         ACCESS_SECRET = environ['ACCESS_SECRET']
-
-    # establish API
     api = twitter.Api(consumer_key=CONSUMER_KEY,
                       consumer_secret=CONSUMER_SECRET,
                       access_token_key=ACCESS_KEY,
                       access_token_secret=ACCESS_SECRET,
-                      tweet_mode='extended')
+                      tweet_mode='extended',
+                      sleep_on_rate_limit=True)
 
-    # get the first batch of twitter data
-    # see for api.GetUserTimeline https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
-    raw = api.GetUserTimeline(screen_name=user_name,
-                              count=num,
-                              exclude_replies=True,
-                              include_rts=False,
-                              trim_user=True)
-
-    # convert into dataframe
-    df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-
-    # fix DATES on dataframe
+    # DATE FORMATTING
     def fix_dates(df):
         """fixes dates for twitter dataframe"""
         df['date_time'] = pd.to_datetime(df['created_at'])
         df['date'] = pd.to_datetime(df['date_time'].dt.date)
 
         def find_monday(d):
-            '''Receives a date and returns the date of the preceding Monday.'''
+            """Receives a date and returns the date of the preceding Monday."""
             while d.weekday() != 0:
                 d += datetime.timedelta(-1)
             return d
         df['date_week'] = df['date'].apply(find_monday)
-
         return df
 
+    ###########################################
+    # LOADING TWITTER DATA
+    ###########################################
+
+    def load_tweets(n_max_id=0):
+        """
+        Read raw data from twitter
+
+        see for api.GetUserTimeline https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
+        """
+        raw = api.GetUserTimeline(screen_name=user_name,
+                                  count=num,
+                                  exclude_replies=True,
+                                  include_rts=False,
+                                  trim_user=True,
+                                  max_id=n_max_id)
+        return raw
+
+    # get the first batch of twitter data
+    raw = load_tweets()
+    df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
     df = fix_dates(df)
 
     # loop through the dataframe x number of times based on the smallest id from the dataframe
     max_id = df['id'].min()-1
     min_date = df['date'].min()
     while min_date > start_date:
-        raw = api.GetUserTimeline(screen_name=user_name,
-                                  count=num,
-                                  exclude_replies=True,
-                                  include_rts=False,
-                                  trim_user=True,
-                                  max_id=max_id)
+        raw = load_tweets(max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
         temp_df = fix_dates(temp_df)
         df = pd.concat([df, temp_df], sort=False)
@@ -117,7 +120,7 @@ def lemmatize_with_postag(sentence):
 
 def tweets_clean_text(tweet):
     '''
-    Cleans the actual text of tweet
+    Cleans the text of a tweet
 
     Parameters
     ----------
@@ -226,8 +229,7 @@ def get_phrase_counts(tweets_df):
     words = " ".join(list(tweets_df))
     ngram_2 = TextBlob(words).ngrams(n=2)
     ngram_3 = TextBlob(words).ngrams(n=3)
-    ngram_4 = TextBlob(words).ngrams(n=4)
-    ngrams = ngram_2 + ngram_3 + ngram_4
+    ngrams = ngram_2 + ngram_3
     # do word count on ngrams
     phrases = []
     for i in ngrams:
@@ -240,3 +242,23 @@ def get_phrase_counts(tweets_df):
     counts_df.reset_index(level=0, inplace=True)
     counts_df.columns = ['phrase', 'count']
     return counts_df
+
+
+def word_search(text, search_words):
+    """
+    Checks to see if words exist in a body of text
+
+    Parameters:
+    -----------
+    search_words -- (list) a list of words to search for in text
+    text -- (string) the body of text to search
+
+    Returns:
+    --------
+    True if any word is found, False otherwise
+    """
+    for i in search_words:
+        if i.lower() in text.lower():
+            return True
+
+    return False
