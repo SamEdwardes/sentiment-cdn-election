@@ -6,6 +6,7 @@ import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
 import nltk
 import json
 import pandas as pd
@@ -19,7 +20,7 @@ from src.twitter_data import *
 from src.twitter_plots import *
 
 
-update_tweets = True
+update_tweets = False
 update_analysis = True
 
 df_path_raw = "data/twitter-data-raw.csv"
@@ -27,7 +28,7 @@ df_path_clean = "data/twitter-data-clean.csv"
 df_path_word_count = "data/word-count.csv"
 df_path_phrase_count = "data/phrase-count.csv"
 
-start_date = datetime.date(2019, 8, 5)  # election officially starts on sep 11
+start_date = datetime.date(2019, 9, 11)  # election officially starts on sep 11
 users = ["JustinTrudeau", "AndrewScheer",
          "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
 
@@ -59,7 +60,7 @@ else:
         df_temp = tweets_get(user_name=user, num=200, start_date=start_date)
         df_temp['handle'] = user
         df = pd.concat([df, df_temp], sort=False)
-        df.to_csv(df_path_raw, index=False)
+    df.to_csv(df_path_raw, index=False)
 
 
 ###########################################
@@ -93,7 +94,7 @@ if update_analysis == True:
     df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
                              on='word')
     df_word_count = df_word_count.sort_values(
-        by=['total_count'], ascending=False).reset_index(drop=True).head(200)
+        by=['total_count'], ascending=False).reset_index(drop=True).head(5000)
 
     # phrase counts
     df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
@@ -136,6 +137,16 @@ colour_dict = {'JustinTrudeau': '#D91A20',
                'ElizabethMay': '#42A03A',
                "theJagmeetSingh": '#F29F24',
                'MaximeBernier': '#A9A9A9'}
+
+leaders_dropdown = [
+    {'label': 'All', 'value': 'All'},
+    {'label': 'JustinTrudeau', 'value': 'JustinTrudeau'},
+    {'label': 'AndrewScheer', 'value': 'AndrewScheer'},
+    {'label': 'ElizabethMay', 'value': 'ElizabethMay'},
+    {'label': 'theJagmeetSingh', 'value': 'theJagmeetSingh'},
+    {'label': 'MaximeBernier', 'value': 'MaximeBernier'}
+]
+
 
 # APP LAYOUT
 app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=[
@@ -186,7 +197,9 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                 html.Hr(),
                 html.H4("What are our leaders tweeting about?"),
                 html.Br(),
-                dcc.Graph(figure=plot_word_count_bar_stack(df_word_count)),
+                dcc.Dropdown(id='word-count-drop-down', options=leaders_dropdown, value="All"),
+                html.Br(),
+                dcc.Graph(id='word-count-bar'),
                 html.Br(),
                 dcc.Graph(figure=plot_phrase_count_bar_stack(df_phrase_count))
             ])
@@ -194,6 +207,32 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
     ])
 ])
 
+#figure=plot_word_count_bar_stack(df_word_count) 
+@app.callback(
+    Output("word-count-bar", "figure"),
+    [Input("word-count-drop-down", "value")]
+)
+def plot_word_count_bar_stack2(filter_selection):
+    """
+    Plots a word count horizontal bar chart
+    """
+    df = df_word_count
+
+    if filter_selection != "All":
+        df = df[df["handle"] == filter_selection]
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30)
+    else:
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30*5)
+
+    fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
+                 title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
+    fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
+                                 categoryorder='array', categoryarray=list(dict.fromkeys(list(df['word'])))))
+    fig.update_layout({"showlegend": True})
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+    fig.update_yaxes(categoryorder="total descending")
+    return(fig)
+
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)

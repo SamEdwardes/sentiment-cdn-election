@@ -31,7 +31,7 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     Dataframe with twitter data
     '''
 
-    # GET CREDENTIALS
+    # API CREDENTIALS
     path = "twitter-credentials.json"
     if os.path.exists(path):  # if running from local machine
         with open(path, "r") as file:
@@ -45,52 +45,53 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
         CONSUMER_SECRET = environ['CONSUMER_SECRET']
         ACCESS_KEY = environ['ACCESS_TOKEN']
         ACCESS_SECRET = environ['ACCESS_SECRET']
-
-    # establish API
     api = twitter.Api(consumer_key=CONSUMER_KEY,
                       consumer_secret=CONSUMER_SECRET,
                       access_token_key=ACCESS_KEY,
                       access_token_secret=ACCESS_SECRET,
                       tweet_mode='extended')
 
-    # get the first batch of twitter data
-    # see for api.GetUserTimeline https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
-    raw = api.GetUserTimeline(screen_name=user_name,
-                              count=num,
-                              exclude_replies=True,
-                              include_rts=False,
-                              trim_user=True)
-
-    # convert into dataframe
-    df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-
-    # fix DATES on dataframe
+    # DATE FORMATTING
     def fix_dates(df):
         """fixes dates for twitter dataframe"""
         df['date_time'] = pd.to_datetime(df['created_at'])
         df['date'] = pd.to_datetime(df['date_time'].dt.date)
 
         def find_monday(d):
-            '''Receives a date and returns the date of the preceding Monday.'''
+            """Receives a date and returns the date of the preceding Monday."""
             while d.weekday() != 0:
                 d += datetime.timedelta(-1)
             return d
         df['date_week'] = df['date'].apply(find_monday)
-
         return df
 
+    ###########################################
+    # LOADING TWITTER DATA
+    ###########################################
+
+    def load_tweets():
+        """
+        Read raw data from twitter
+
+        see for api.GetUserTimeline https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
+        """
+        raw = api.GetUserTimeline(screen_name=user_name,
+                                count=num,
+                                exclude_replies=True,
+                                include_rts=True,
+                                trim_user=True)
+        return raw
+
+    # get the first batch of twitter data
+    raw = load_tweets()
+    df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
     df = fix_dates(df)
 
     # loop through the dataframe x number of times based on the smallest id from the dataframe
     max_id = df['id'].min()-1
     min_date = df['date'].min()
     while min_date > start_date:
-        raw = api.GetUserTimeline(screen_name=user_name,
-                                  count=num,
-                                  exclude_replies=True,
-                                  include_rts=False,
-                                  trim_user=True,
-                                  max_id=max_id)
+        raw = load_tweets()
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
         temp_df = fix_dates(temp_df)
         df = pd.concat([df, temp_df], sort=False)
@@ -98,7 +99,6 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
         min_date = df['date'].min()
 
     return df
-
 
 def lemmatize_with_postag(sentence):
     '''
@@ -117,7 +117,7 @@ def lemmatize_with_postag(sentence):
 
 def tweets_clean_text(tweet):
     '''
-    Cleans the actual text of tweet
+    Cleans the text of a tweet
 
     Parameters
     ----------

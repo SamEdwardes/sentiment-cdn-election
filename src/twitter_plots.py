@@ -1,6 +1,8 @@
+import dash_html_components as html
+import pandas as pd
 import plotly_express as px
 import plotly.figure_factory as ff
-import dash_html_components as html
+
 
 # colours for eachleader
 colour_dict = {'JustinTrudeau': '#D91A20',
@@ -125,6 +127,9 @@ def plot_subjectivity_dist(df):
 
 
 def plot_word_count_bar_stack(df):
+    """
+    Plots a word count horizontal bar chart
+    """
     fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
                  title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
     fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
@@ -135,6 +140,9 @@ def plot_word_count_bar_stack(df):
 
 
 def plot_phrase_count_bar_stack(df):
+    """
+    Plots a phrase count horizontal bar chart
+    """
     fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
                  title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
     fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
