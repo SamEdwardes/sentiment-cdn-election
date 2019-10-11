@@ -107,7 +107,7 @@ if update_analysis == True:
     df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
                                on='phrase')
     df_phrase_count = df_phrase_count.sort_values(
-        by=['total_count'], ascending=False).reset_index(drop=True).head(100)
+        by=['total_count'], ascending=False).reset_index(drop=True).head(5000)
 
     # export clean data
     df.to_csv(df_path_clean, index=False)
@@ -115,7 +115,7 @@ if update_analysis == True:
     df_phrase_count.to_csv(df_path_phrase_count, index=False)
 
 ###########################################
-# APP STUFF
+# APP LAYOUT
 ###########################################
 
 # COLOUR AND STYLE
@@ -197,22 +197,30 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                 html.Hr(),
                 html.H4("What are our leaders tweeting about?"),
                 html.Br(),
+                # Word count bar chart
                 dcc.Dropdown(id='word-count-drop-down', options=leaders_dropdown, value="All"),
                 html.Br(),
                 dcc.Graph(id='word-count-bar'),
                 html.Br(),
-                dcc.Graph(figure=plot_phrase_count_bar_stack(df_phrase_count))
+                # Phrase count bar chart
+                dcc.Dropdown(id='phrase-count-drop-down', options=leaders_dropdown, value="All"),
+                html.Br(),
+                dcc.Graph(id='phrase-count-bar')
             ])
         ])
     ])
 ])
 
-#figure=plot_word_count_bar_stack(df_word_count) 
+###########################################
+# APP CALL BACKS
+###########################################
+
+# Word count bar chart
 @app.callback(
     Output("word-count-bar", "figure"),
     [Input("word-count-drop-down", "value")]
 )
-def plot_word_count_bar_stack2(filter_selection):
+def plot_word_count_bar_stack(filter_selection):
     """
     Plots a word count horizontal bar chart
     """
@@ -220,17 +228,39 @@ def plot_word_count_bar_stack2(filter_selection):
 
     if filter_selection != "All":
         df = df[df["handle"] == filter_selection]
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(40)
     else:
         df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30*5)
 
     fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
                  title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
-    fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
-                                 categoryorder='array', categoryarray=list(dict.fromkeys(list(df['word'])))))
     fig.update_layout({"showlegend": True})
     fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
-    fig.update_yaxes(categoryorder="total descending")
+    fig.update_yaxes(categoryorder="total ascending")
+    return(fig)
+
+# Phrase count bar chart
+@app.callback(
+    Output("phrase-count-bar", "figure"),
+    [Input("phrase-count-drop-down", "value")]
+)
+def plot_phrase_count_bar_stack(filter_selection):
+    """
+    Plots a phrase count horizontal bar chart
+    """
+    df = df_phrase_count
+
+    if filter_selection != "All":
+        df = df[df["handle"] == filter_selection]
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(40)
+    else:
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30*4)
+
+    fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
+                 title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
+    fig.update_layout({"showlegend": True})
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+    fig.update_yaxes(categoryorder="total ascending")
     return(fig)
 
 

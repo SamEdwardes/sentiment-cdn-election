@@ -126,27 +126,40 @@ def plot_subjectivity_dist(df):
     return fig
 
 
-def plot_word_count_bar_stack(df):
-    """
-    Plots a word count horizontal bar chart
-    """
-    fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
-                 title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
-    fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
-                                 categoryorder='array', categoryarray=list(dict.fromkeys(list(df['word'])))))
-    fig.update_layout({"showlegend": True})
-    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
-    return(fig)
+# def plot_word_count_bar_stack(df):
+#     """
+#     Plots a word count horizontal bar chart
+#     """
+#     fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
+#                  title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
+#     fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
+#                                  categoryorder='array', categoryarray=list(dict.fromkeys(list(df['word'])))))
+#     fig.update_layout({"showlegend": True})
+#     fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+#     return(fig)
 
 
-def plot_phrase_count_bar_stack(df):
-    """
-    Plots a phrase count horizontal bar chart
-    """
-    fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
-                 title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
-    fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
-                                 categoryorder='array', categoryarray=list(dict.fromkeys(list(df['phrase'])))))
-    fig.update_layout({"showlegend": True})
-    fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
-    return(fig)
+# @app.callback(
+#     Output("phrase-count-bar", "figure"),
+#     [Input("phrase-count-drop-down", "value")]
+# )
+# def plot_phrase_count_bar_stack(filter_selection):
+#     """
+#     Plots a phrase count horizontal bar chart
+#     """
+#     df = pd.read_csv("data/phrase-count.csv")
+
+#     if filter_selection != "All":
+#         df = df[df["handle"] == filter_selection]
+#         df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30)
+#     else:
+#         df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30*5)
+
+#     fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
+#                  title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
+#     fig.update_layout(yaxis=dict(autorange="reversed", dtick=1, title_text="",
+#                                  categoryorder='array', categoryarray=list(dict.fromkeys(list(df['phrase'])))))
+#     fig.update_layout({"showlegend": True})
+#     fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
+#     fig.update_yaxes(categoryorder="total descending")
+#     return(fig)
