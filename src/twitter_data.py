@@ -49,7 +49,8 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
                       consumer_secret=CONSUMER_SECRET,
                       access_token_key=ACCESS_KEY,
                       access_token_secret=ACCESS_SECRET,
-                      tweet_mode='extended')
+                      tweet_mode='extended',
+                      sleep_on_rate_limit=True)
 
     # DATE FORMATTING
     def fix_dates(df):
@@ -69,7 +70,7 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     # LOADING TWITTER DATA
     ###########################################
 
-    def load_tweets():
+    def load_tweets(n_max_id = 0):
         """
         Read raw data from twitter
 
@@ -78,8 +79,9 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
         raw = api.GetUserTimeline(screen_name=user_name,
                                 count=num,
                                 exclude_replies=True,
-                                include_rts=True,
-                                trim_user=True)
+                                include_rts=False,
+                                trim_user=True,
+                                max_id= n_max_id)
         return raw
 
     # get the first batch of twitter data
@@ -91,7 +93,7 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     max_id = df['id'].min()-1
     min_date = df['date'].min()
     while min_date > start_date:
-        raw = load_tweets()
+        raw = load_tweets(max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
         temp_df = fix_dates(temp_df)
         df = pd.concat([df, temp_df], sort=False)
@@ -240,3 +242,23 @@ def get_phrase_counts(tweets_df):
     counts_df.reset_index(level=0, inplace=True)
     counts_df.columns = ['phrase', 'count']
     return counts_df
+
+
+def word_search(text, search_words):
+    """
+    Checks to see if words exist in a body of text
+
+    Parameters:
+    -----------
+    search_words -- (list) a list of words to search for in text
+    text -- (string) the body of text to search
+
+    Returns:
+    --------
+    True if any word is found, False otherwise
+    """
+    for i in search_words:
+        if i.lower() in text.lower():
+            return True
+    
+    return False

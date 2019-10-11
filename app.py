@@ -83,9 +83,22 @@ if update_analysis == True:
     df['polarity'] = clean_sentiment['polarity']
     df['subjectivity'] = clean_sentiment['subjectivity']
 
+    # tweets about other leaders
+    justin_search = ["justin", "trudeau", "justintrudeau"]
+    scheer_search = ["scheer", "andrew", "andrewscheer"]
+    may_search = ["may", "elizabeth", "ElizabethMay"]
+    singh_search = ["singh", "jagmeet", "jagmeetsingh", "theJagmeetSingh"]
+    bernier_search = ["bernier", "maxime", "MaximeBernier"]
+    df["about_trudeau"] = df["full_text"].apply(word_search, search_words = justin_search)
+    df["about_scheer"] = df["full_text"].apply(word_search, search_words = scheer_search)
+    df["about_may"] = df["full_text"].apply(word_search, search_words = may_search)
+    df["about_singh"] = df["full_text"].apply(word_search, search_words = singh_search)
+    df["about_bernier"] = df["full_text"].apply(word_search, search_words = bernier_search)
+
     # word counts
     df_word_count_totals = get_word_counts(df['clean_tweet'])
     df_word_count_totals.columns = ['word', 'total_count']
+    df_word_count_totals['rank'] = df_word_count_totals['total_count'].rank(ascending=False, method="first")
     df_word_count = pd.DataFrame()
     for i in users:
         temp = get_word_counts(df[df['handle'] == i]['clean_tweet'])
@@ -94,11 +107,13 @@ if update_analysis == True:
     df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
                              on='word')
     df_word_count = df_word_count.sort_values(
-        by=['total_count'], ascending=False).reset_index(drop=True).head(5000)
+        by=['total_count', 'word', 'count'], ascending=False).reset_index(drop=True)
+    df_word_count.head(5000)
 
     # phrase counts
     df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
     df_phrase_count_total.columns = ['phrase', 'total_count']
+    df_phrase_count_total['rank'] = df_phrase_count_total['total_count'].rank(ascending=False, method="first")
     df_phrase_count = pd.DataFrame()
     for i in users:
         temp = get_phrase_counts(df[df['handle'] == i]['clean_tweet'])
@@ -107,7 +122,8 @@ if update_analysis == True:
     df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
                                on='phrase')
     df_phrase_count = df_phrase_count.sort_values(
-        by=['total_count'], ascending=False).reset_index(drop=True).head(5000)
+        by=['total_count', 'phrase', 'count'], ascending=False).reset_index(drop=True)
+    df_phrase_count.head(5000)
 
     # export clean data
     df.to_csv(df_path_clean, index=False)
@@ -215,6 +231,7 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 # APP CALL BACKS
 ###########################################
 
+
 # Word count bar chart
 @app.callback(
     Output("word-count-bar", "figure"),
@@ -225,12 +242,12 @@ def plot_word_count_bar_stack(filter_selection):
     Plots a word count horizontal bar chart
     """
     df = df_word_count
-
     if filter_selection != "All":
         df = df[df["handle"] == filter_selection]
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(40)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(50)
     else:
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30*5)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True)
+        df = df[df['rank'] <= 50]
 
     fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
                  title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
@@ -238,6 +255,7 @@ def plot_word_count_bar_stack(filter_selection):
     fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
     fig.update_yaxes(categoryorder="total ascending")
     return(fig)
+
 
 # Phrase count bar chart
 @app.callback(
@@ -249,12 +267,12 @@ def plot_phrase_count_bar_stack(filter_selection):
     Plots a phrase count horizontal bar chart
     """
     df = df_phrase_count
-
     if filter_selection != "All":
         df = df[df["handle"] == filter_selection]
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(40)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(50)
     else:
-        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True).head(30*4)
+        df = df.sort_values(by=['total_count'], ascending=False).reset_index(drop=True)
+        df = df[df['rank'] <= 50]
 
     fig = px.bar(df, y='phrase', x='count', orientation="h", color="handle",
                  title="Tweet Phrase Count", height=800, color_discrete_map=colour_dict)
@@ -265,4 +283,4 @@ def plot_phrase_count_bar_stack(filter_selection):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
