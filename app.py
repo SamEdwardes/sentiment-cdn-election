@@ -221,7 +221,10 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                 # Phrase count bar chart
                 dcc.Dropdown(id='phrase-count-drop-down', options=leaders_dropdown, value="All"),
                 html.Br(),
-                dcc.Graph(id='phrase-count-bar')
+                dcc.Graph(id='phrase-count-bar'),
+                html.Br(),
+                # Tweets about eachother
+                dcc.Graph(figure=plot_about_eachother_heatmap(df))
             ])
         ])
     ])
