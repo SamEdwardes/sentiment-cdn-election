@@ -20,8 +20,8 @@ from src.twitter_data import *
 from src.twitter_plots import *
 
 
-update_tweets = True
-update_analysis = True
+update_tweets = False
+update_analysis = False
 
 df_path_raw = "data/twitter-data-raw.csv"
 df_path_clean = "data/twitter-data-clean.csv"
