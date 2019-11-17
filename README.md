@@ -7,6 +7,7 @@ The 2019 Canadian election will be held on Monday, October 21, 2019. This progra
 The web app can be found on Heroku: [https://cdn-election-sent-app.herokuapp.com/](https://cdn-election-sent-app.herokuapp.com/)
 
 
+
 | Party          | Leader         | Site                                                            | Twitter Handle                                          |
 |----------------|----------------|-----------------------------------------------------------------|---------------------------------------------------------|
 | Liberals       | Justin Trudeau | [2019.liberal.ca](https://2019.liberal.ca/)                     | [@JustinTrudeau](https://twitter.com/JustinTrudeau)     |
