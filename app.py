@@ -14,7 +14,7 @@ import src.twitter_plots as twitter_plots
 
 
 update_tweets = False
-update_analysis = True
+update_analysis = False
 
 df_path_raw = "data/twitter-data-raw.csv"
 df_path_clean = "data/twitter-data-clean.csv"
