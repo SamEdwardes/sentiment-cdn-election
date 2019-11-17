@@ -1,5 +1,4 @@
 import dash_html_components as html
-import pandas as pd
 import plotly_express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go

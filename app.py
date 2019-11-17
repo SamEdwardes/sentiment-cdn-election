@@ -1,27 +1,20 @@
 # base
 import datetime
 import socket
-import os
 # external libraries
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import nltk
-import json
 import pandas as pd
-import plotly.graph_objs as go
 import plotly_express as px
-import re
-from textblob import TextBlob, Word
-import twitter
 # my libraries
-from src.twitter_data import *
-from src.twitter_plots import *
+import src.twitter_data as twitter_data
+import src.twitter_plots as twitter_plots
 
 
 update_tweets = False
-update_analysis = False
+update_analysis = True
 
 df_path_raw = "data/twitter-data-raw.csv"
 df_path_clean = "data/twitter-data-clean.csv"
@@ -40,7 +33,7 @@ users = ["JustinTrudeau", "AndrewScheer",
 # check environment
 if (
     socket.gethostname() != "Sams-MacBook-Pro.local" and
-    socket.gethostname() != "dhcp-206-87-114-237.ubcsecure.wireless.ubc.ca" and 
+    socket.gethostname() != "dhcp-206-87-114-237.ubcsecure.wireless.ubc.ca" and
     socket.gethostname() != "dhcp-206-87-114-42.ubcsecure.wireless.ubc.ca"
 ):
     update_tweets = False
@@ -60,7 +53,8 @@ else:
     print("\tGetting new twitter data from Twitter API.")
     df = pd.DataFrame()
     for user in users:
-        df_temp = tweets_get(user_name=user, num=200, start_date=start_date)
+        df_temp = twitter_data.tweets_get(
+            user_name=user, num=200, start_date=start_date)
         df_temp['handle'] = user
         df = pd.concat([df, df_temp], sort=False)
     df.to_csv(df_path_raw, index=False)
@@ -77,12 +71,12 @@ if update_analysis == True:
     df['date'] = pd.to_datetime(df['date_time'].dt.date)
     df = df[df['date'] >= start_date]
     df = df[df['lang'] == 'en']  # keep only english langauge tweets
-    df['clean_tweet'] = df['full_text'].apply(tweets_clean_text)
-    df['break_tweet'] = df['full_text'].apply(tweets_break)
+    df['clean_tweet'] = df['full_text'].apply(twitter_data.tweets_clean_text)
+    df['break_tweet'] = df['full_text'].apply(twitter_data.tweets_break)
 
     # add sentiment and polarity
-    raw_sentiment = get_sentiment(df['full_text'])
-    clean_sentiment = get_sentiment(df['clean_tweet'])
+    raw_sentiment = twitter_data.get_sentiment(df['full_text'])
+    clean_sentiment = twitter_data.get_sentiment(df['clean_tweet'])
     df['polarity'] = clean_sentiment['polarity']
     df['subjectivity'] = clean_sentiment['subjectivity']
 
@@ -93,24 +87,25 @@ if update_analysis == True:
     singh_search = ["singh", "jagmeet", "jagmeetsingh", "theJagmeetSingh"]
     bernier_search = ["bernier", "maxime", "MaximeBernier"]
     df["about_trudeau"] = df["full_text"].apply(
-        word_search, search_words=justin_search)
+        twitter_data.word_search, search_words=justin_search)
     df["about_scheer"] = df["full_text"].apply(
-        word_search, search_words=scheer_search)
+        twitter_data.word_search, search_words=scheer_search)
     df["about_may"] = df["full_text"].apply(
-        word_search, search_words=may_search)
+        twitter_data.word_search, search_words=may_search)
     df["about_singh"] = df["full_text"].apply(
-        word_search, search_words=singh_search)
+        twitter_data.word_search, search_words=singh_search)
     df["about_bernier"] = df["full_text"].apply(
-        word_search, search_words=bernier_search)
+        twitter_data.word_search, search_words=bernier_search)
 
     # word counts
-    df_word_count_totals = get_word_counts(df['clean_tweet'])
+    df_word_count_totals = twitter_data.get_word_counts(df['clean_tweet'])
     df_word_count_totals.columns = ['word', 'total_count']
     df_word_count_totals['rank'] = df_word_count_totals['total_count'].rank(
         ascending=False, method="first")
     df_word_count = pd.DataFrame()
     for i in users:
-        temp = get_word_counts(df[df['handle'] == i]['clean_tweet'])
+        temp = twitter_data.get_word_counts(
+            df[df['handle'] == i]['clean_tweet'])
         temp['handle'] = i
         df_word_count = pd.concat([temp, df_word_count])
     df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
@@ -120,13 +115,14 @@ if update_analysis == True:
     df_word_count.head(5000)
 
     # phrase counts
-    df_phrase_count_total = get_phrase_counts(df['clean_tweet'])
+    df_phrase_count_total = twitter_data.get_phrase_counts(df['clean_tweet'])
     df_phrase_count_total.columns = ['phrase', 'total_count']
     df_phrase_count_total['rank'] = df_phrase_count_total['total_count'].rank(
         ascending=False, method="first")
     df_phrase_count = pd.DataFrame()
     for i in users:
-        temp = get_phrase_counts(df[df['handle'] == i]['clean_tweet'])
+        temp = twitter_data.get_phrase_counts(
+            df[df['handle'] == i]['clean_tweet'])
         temp['handle'] = i
         df_phrase_count = pd.concat([temp, df_phrase_count])
     df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
@@ -147,6 +143,7 @@ if update_analysis == True:
 # COLOUR AND STYLE
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.title = "2019 Canadian Election Sentiment Analysis"
 server = app.server
 
 colors = {"dark_green": "#3a4f41",
@@ -193,11 +190,11 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
             html.Div(className="row", children=[
                 # ROW 1, COLUMN 1
                 html.Div(className="one-half column", children=[
-                    dcc.Graph(figure=plot_tweets_total(df))
+                    dcc.Graph(figure=twitter_plots.plot_tweets_total(df))
                 ]),
                 # ROW 1, COLUMN 2
                 html.Div(className="one-half column", children=[
-                    dcc.Graph(figure=plot_tweets_time(df))
+                    dcc.Graph(figure=twitter_plots.plot_tweets_time(df))
                 ])
             ]),
             # ROW 2 - Sentiment Plot
@@ -205,17 +202,17 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                 html.Hr(),
                 html.H4("What is the sentiment of their tweets?"),
                 dcc.Markdown(open("docs/sentiment-explained.md").read()),
-                dcc.Graph(figure=plot_tweets_sentiment(df))
+                dcc.Graph(figure=twitter_plots.plot_tweets_sentiment(df))
             ]),
             # ROW 3 - Sentiment Distributions
             html.Div(className="row", children=[
                 # ROW 3, COLUMN 1
                 html.Div(className="one-half column", children=[
-                    dcc.Graph(figure=plot_polarity_dist(df))
+                    dcc.Graph(figure=twitter_plots.plot_polarity_dist(df))
                 ]),
                 # ROW 3, COLUMN 2
                 html.Div(className="one-half column", children=[
-                    dcc.Graph(figure=plot_subjectivity_dist(df))
+                    dcc.Graph(figure=twitter_plots.plot_subjectivity_dist(df))
                 ])
             ]),
             # ROW 4 - About eachother
@@ -234,7 +231,8 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
                 # ROW 6, COLUMN 2
                 html.Div(className="one-half column", children=[
                     # Tweets about eachother
-                    dcc.Graph(figure=plot_about_eachother_heatmap(df)),
+                    dcc.Graph(
+                        figure=twitter_plots.plot_about_eachother_heatmap(df)),
                     html.Br()
                 ]),
             ]),

@@ -1,6 +1,5 @@
 # libraries (base)
 import datetime
-from os import environ
 import os
 
 # libraries (other)
@@ -8,7 +7,7 @@ import nltk
 import json
 import pandas as pd
 import re
-from textblob import TextBlob, Word
+from textblob import TextBlob
 import twitter
 
 
@@ -41,10 +40,10 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
         ACCESS_KEY = creds['ACCESS_TOKEN']
         ACCESS_SECRET = creds['ACCESS_SECRET']
     else:  # if running from Heroku
-        CONSUMER_KEY = environ['CONSUMER_KEY']
-        CONSUMER_SECRET = environ['CONSUMER_SECRET']
-        ACCESS_KEY = environ['ACCESS_TOKEN']
-        ACCESS_SECRET = environ['ACCESS_SECRET']
+        CONSUMER_KEY = os.environ['CONSUMER_KEY']
+        CONSUMER_SECRET = os.environ['CONSUMER_SECRET']
+        ACCESS_KEY = os.environ['ACCESS_TOKEN']
+        ACCESS_SECRET = os.environ['ACCESS_SECRET']
     api = twitter.Api(consumer_key=CONSUMER_KEY,
                       consumer_secret=CONSUMER_SECRET,
                       access_token_key=ACCESS_KEY,
@@ -83,7 +82,7 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
                                   trim_user=True,
                                   max_id=n_max_id)
         return raw
-
+    print(f"\t - Getting tweets for: {user_name}...")
     # get the first batch of twitter data
     raw = load_tweets()
     df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
@@ -95,7 +94,13 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     while min_date > start_date:
         raw = load_tweets(max_id)
         temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-        temp_df = fix_dates(temp_df)
+        #
+        try:
+            temp_df = fix_dates(temp_df)
+        except KeyError:
+            print(f"\t\terror fixing dates for {user_name}...")
+            return df
+        #
         df = pd.concat([df, temp_df], sort=False)
         max_id = df['id'].min()-1
         min_date = df['date'].min()
