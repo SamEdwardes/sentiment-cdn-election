@@ -13,6 +13,7 @@ app :
 deploy_heroku :
 	git add .;
 	git commit -m "ready for heroku deploy";
+	git push;
 	git push heroku master;
 
 deploy_heroku_refresh :
@@ -20,7 +21,8 @@ deploy_heroku_refresh :
 	python src/02_refresh_analysis.py;
 	git add .;
 	git commit -m "ready for heroku deploy";
-	git push heroku master
-
+	git push;
+	git push heroku master;
+	
 clean :
 	rm -f data/*.csv
