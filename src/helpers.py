@@ -19,7 +19,7 @@ def get_project_global_variables():
         "twitter_handles": ["JustinTrudeau", "AndrewScheer",
                             "ElizabethMay", "theJagmeetSingh", 
                             "MaximeBernier"],
-        "start_date": datetime.date(2020, 3, 20),  # elct started on 2019-09-11
+        "start_date": datetime.date(2019, 9, 11),  # elct started on 2019-09-11
         "df_path_raw": "data/twitter-data-raw.csv",
         "df_path_clean": "data/twitter-data-clean.csv",
         "df_path_word_count": "data/word-count.csv",
