@@ -9,11 +9,11 @@ refresh :
 
 app :
 	python app.py                   
-	
+
 deploy_heroku :
 	git add .;
 	git commit -m "ready for heroku deploy";
-	git push heroku master
+	git push heroku master;
 
 deploy_heroku_refresh :
 	python src/01_refresh_data.py;  
