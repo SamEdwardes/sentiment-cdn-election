@@ -1,140 +1,25 @@
-# base
-import datetime
-import socket
-# external libraries
+import os
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
 import pandas as pd
 import plotly_express as px
-# my libraries
-import src.twitter_data as twitter_data
+from dash.dependencies import Input, Output
+
 import src.twitter_plots as twitter_plots
+from src.helpers import get_project_global_variables
 
+users = get_project_global_variables()["twitter_handles"]
+df_path_raw = get_project_global_variables()["df_path_raw"]
+df_path_clean = get_project_global_variables()["df_path_clean"]
+df_path_word_count = get_project_global_variables()["df_path_word_count"]
+df_path_phrase_count = get_project_global_variables()["df_path_phrase_count"]
 
-update_tweets = False
-update_analysis = False
-
-df_path_raw = "data/twitter-data-raw.csv"
-df_path_clean = "data/twitter-data-clean.csv"
-df_path_word_count = "data/word-count.csv"
-df_path_phrase_count = "data/phrase-count.csv"
-
-start_date = datetime.date(2019, 9, 11)  # election officially starts on sep 11
-users = ["JustinTrudeau", "AndrewScheer",
-         "ElizabethMay", "theJagmeetSingh", "MaximeBernier"]
-
-
-###########################################
-# GETTING DATA
-###########################################
-
-# check environment
-if (
-    socket.gethostname() != "Sams-MacBook-Pro.local" and
-    socket.gethostname() != "dhcp-206-87-114-237.ubcsecure.wireless.ubc.ca" and
-    socket.gethostname() != "dhcp-206-87-114-42.ubcsecure.wireless.ubc.ca"
-):
-    update_tweets = False
-    update_analysis = False
-
-# read or get new twitter data
-print("Getting twitter data...")
-if update_tweets == False and update_analysis == False:
-    print("\tReading old clean twitter data from disk.")
-    df = pd.read_csv(df_path_clean)
-    df_word_count = pd.read_csv(df_path_word_count)
-    df_phrase_count = pd.read_csv(df_path_phrase_count)
-elif update_tweets == False and update_analysis == True:
-    print("\tReading old raw twitter data from disk.")
-    df = pd.read_csv(df_path_raw)
-else:
-    print("\tGetting new twitter data from Twitter API.")
-    df = pd.DataFrame()
-    for user in users:
-        df_temp = twitter_data.tweets_get(
-            user_name=user, num=200, start_date=start_date)
-        df_temp['handle'] = user
-        df = pd.concat([df, df_temp], sort=False)
-    df.to_csv(df_path_raw, index=False)
-
-
-###########################################
-# ANALYSING TWITTER DATA
-###########################################
-
-if update_analysis == True:
-    # clean twitter data
-    print("Analysing twitter data...")
-    df['date_time'] = pd.to_datetime(df['created_at'])
-    df['date'] = pd.to_datetime(df['date_time'].dt.date)
-    df = df[df['date'] >= start_date]
-    df = df[df['lang'] == 'en']  # keep only english langauge tweets
-    df['clean_tweet'] = df['full_text'].apply(twitter_data.tweets_clean_text)
-    df['break_tweet'] = df['full_text'].apply(twitter_data.tweets_break)
-
-    # add sentiment and polarity
-    raw_sentiment = twitter_data.get_sentiment(df['full_text'])
-    clean_sentiment = twitter_data.get_sentiment(df['clean_tweet'])
-    df['polarity'] = clean_sentiment['polarity']
-    df['subjectivity'] = clean_sentiment['subjectivity']
-
-    # tweets about other leaders
-    justin_search = ["justin", "trudeau", "justintrudeau"]
-    scheer_search = ["scheer", "andrew", "andrewscheer"]
-    may_search = ["may", "elizabeth", "ElizabethMay"]
-    singh_search = ["singh", "jagmeet", "jagmeetsingh", "theJagmeetSingh"]
-    bernier_search = ["bernier", "maxime", "MaximeBernier"]
-    df["about_trudeau"] = df["full_text"].apply(
-        twitter_data.word_search, search_words=justin_search)
-    df["about_scheer"] = df["full_text"].apply(
-        twitter_data.word_search, search_words=scheer_search)
-    df["about_may"] = df["full_text"].apply(
-        twitter_data.word_search, search_words=may_search)
-    df["about_singh"] = df["full_text"].apply(
-        twitter_data.word_search, search_words=singh_search)
-    df["about_bernier"] = df["full_text"].apply(
-        twitter_data.word_search, search_words=bernier_search)
-
-    # word counts
-    df_word_count_totals = twitter_data.get_word_counts(df['clean_tweet'])
-    df_word_count_totals.columns = ['word', 'total_count']
-    df_word_count_totals['rank'] = df_word_count_totals['total_count'].rank(
-        ascending=False, method="first")
-    df_word_count = pd.DataFrame()
-    for i in users:
-        temp = twitter_data.get_word_counts(
-            df[df['handle'] == i]['clean_tweet'])
-        temp['handle'] = i
-        df_word_count = pd.concat([temp, df_word_count])
-    df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
-                             on='word')
-    df_word_count = df_word_count.sort_values(
-        by=['total_count', 'word', 'count'], ascending=False).reset_index(drop=True)
-    df_word_count.head(5000)
-
-    # phrase counts
-    df_phrase_count_total = twitter_data.get_phrase_counts(df['clean_tweet'])
-    df_phrase_count_total.columns = ['phrase', 'total_count']
-    df_phrase_count_total['rank'] = df_phrase_count_total['total_count'].rank(
-        ascending=False, method="first")
-    df_phrase_count = pd.DataFrame()
-    for i in users:
-        temp = twitter_data.get_phrase_counts(
-            df[df['handle'] == i]['clean_tweet'])
-        temp['handle'] = i
-        df_phrase_count = pd.concat([temp, df_phrase_count])
-    df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total, how='left',
-                               on='phrase')
-    df_phrase_count = df_phrase_count.sort_values(
-        by=['total_count', 'phrase', 'count'], ascending=False).reset_index(drop=True)
-    df_phrase_count.head(5000)
-
-    # export clean data
-    df.to_csv(df_path_clean, index=False)
-    df_word_count.to_csv(df_path_word_count, index=False)
-    df_phrase_count.to_csv(df_path_phrase_count, index=False)
+df = pd.read_csv(df_path_clean)
+df['date'] = pd.to_datetime(df['date'])
+df_word_count = pd.read_csv(df_path_word_count)
+df_phrase_count = pd.read_csv(df_path_phrase_count)
 
 ###########################################
 # APP LAYOUT
@@ -180,23 +65,29 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
     ]),
     # MAIN BODY
     html.Div(className="row", children=[
-        # SIDEBAR
-        html.Div(className="three columns", style={'padding': 20}, children=[
-            dcc.Markdown(open("docs/intro.md").read())]),
         # PLOTS
-        html.Div(className="nine columns", style={"backgroundColor": colors['white'], "padding": 20}, children=[
+        html.Div(className="twelve columns", style={"backgroundColor": colors['white'], "padding": 20}, children=[
             html.H4("How much are the leaders tweeting?"),
             # ROW 1 - TWEET COUNTS
             html.Div(className="row", children=[
                 # ROW 1, COLUMN 1
                 html.Div(className="one-half column", children=[
-                    dcc.Graph(figure=twitter_plots.plot_tweets_total(df))
+                    dcc.Graph(id='tweets-bar-count')
                 ]),
                 # ROW 1, COLUMN 2
                 html.Div(className="one-half column", children=[
-                    dcc.Graph(figure=twitter_plots.plot_tweets_time(df))
-                ])
+                    dcc.Graph(id='tweets-by-week-line')
+                ]),
             ]),
+            # ROW 1.5 FILTERS
+            html.Div(className="row", children=[
+                html.Br(),
+                dcc.DatePickerRange(id='selected-date-range',
+                                    start_date=min(df['date']),
+                                    min_date_allowed=min(df['date']),
+                                    end_date=max(df['date']),
+                                    max_date_allowed=max(df['date']))
+            ]),                
             # ROW 2 - Sentiment Plot
             html.Div(className="row", children=[
                 html.Hr(),
@@ -238,24 +129,24 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
             ]),
             # ROW 7 - Tweet counts
             html.Div(className="row", children=[
-                # ROW 7, COLUMN 1
-                html.Div(className="one-half column", children=[
                     # Word count bar chart
                     dcc.Dropdown(id='word-count-drop-down',
                                  options=leaders_dropdown, value="All"),
                     html.Br(),
                     dcc.Graph(id='word-count-bar'),
-                    html.Br()
-                ]),
-                # ROW 7, COLUMN 2
-                html.Div(className="one-half column", children=[
+                    html.Br(),            
                     # Phrase count bar chart
                     dcc.Dropdown(id='phrase-count-drop-down',
                                  options=leaders_dropdown, value="All"),
                     html.Br(),
                     dcc.Graph(id='phrase-count-bar'),
                     html.Br()
-                ])
+         
+            ]),
+            # ROW 8 - About
+            html.Div(className="row", children=[
+                html.Hr(),
+                dcc.Markdown(open("docs/intro.md").read())
             ])
         ])
     ])
@@ -266,17 +157,53 @@ app.layout = html.Div(style={'backgroundColor': colors['light_grey']}, children=
 # APP CALL BACKS
 ###########################################
 
-
-# Word count bar chart
+# Tweet bar count
 @app.callback(
-    Output("word-count-bar", "figure"),
-    [Input("word-count-drop-down", "value")]
+    Output("tweets-bar-count", "figure"), [
+        Input("selected-date-range", 'start_date'),
+        Input("selected-date-range", 'end_date')
+    ]
 )
-def plot_word_count_bar_stack(filter_selection):
+def plot_tweets_bar_count(start_date, end_date, df=df):
     """
     Plots a word count horizontal bar chart
     """
-    df = df_word_count
+    df = df[df['date'] >= pd.to_datetime(start_date)]
+    df = df[df['date'] <= pd.to_datetime(end_date)]
+    return twitter_plots.plot_tweets_total(df)
+
+
+# Number of tweets by week
+@app.callback(
+    Output("tweets-by-week-line", "figure"), [
+        Input("selected-date-range", 'start_date'),
+        Input("selected-date-range", 'end_date')
+    ]
+)
+def plot_tweets_by_week_line(start_date, end_date, df=df):
+    """
+    Plots a word count horizontal bar chart
+    """
+    df = df[df['date'] >= pd.to_datetime(start_date)]
+    df = df[df['date'] <= pd.to_datetime(end_date)]
+    return twitter_plots.plot_tweets_time(df)
+
+
+# Word count bar chart
+@app.callback(
+    Output("word-count-bar", "figure"), [
+        Input("word-count-drop-down", "value"),
+        Input("selected-date-range", 'start_date'),
+        Input("selected-date-range", 'end_date')
+    ]
+)
+def plot_word_count_bar_stack(filter_selection, start_date, end_date, 
+                              df=df_word_count):
+    """
+    Plots a word count horizontal bar chart
+    """
+    # df = df[df['date'] >= pd.to_datetime(start_date)]
+    # df = df[df['date'] <= pd.to_datetime(end_date)]
     if filter_selection != "All":
         df = df[df["handle"] == filter_selection]
         df = df.sort_values(by=['total_count'], ascending=False).reset_index(
@@ -287,7 +214,8 @@ def plot_word_count_bar_stack(filter_selection):
         df = df[df['rank'] <= 50]
 
     fig = px.bar(df, y='word', x='count', orientation="h", color="handle",
-                 title="Tweet Word Count", height=800, color_discrete_map=colour_dict)
+                 title="Tweet Word Count", height=800, 
+                 color_discrete_map=colour_dict)
     fig.update_layout({"showlegend": False})
     fig.update_layout(margin=dict(l=0, r=0, t=30, b=30), autosize=True)
     fig.update_yaxes(categoryorder="total ascending", title_text="")
@@ -322,4 +250,8 @@ def plot_phrase_count_bar_stack(filter_selection):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    if 'ON_HEROKU' in os.environ:
+        debug_bool = False
+    else:
+        debug_bool = True
+    app.run_server(debug=debug_bool)
