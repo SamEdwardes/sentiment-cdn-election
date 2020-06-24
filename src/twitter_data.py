@@ -1,6 +1,7 @@
-import datetime
 import json
 import os
+from collections import defaultdict
+from datetime import date, datetime
 
 import pandas as pd
 import twitter
@@ -12,9 +13,8 @@ def create_twitter_api():
     # API CREDENTIALS
     path = "twitter-credentials.json"
     # if running from local machine
-    if os.path.exists(path):  
-        with open(path, "r") as file:
-            creds = json.load(file)
+    if os.path.exists(path):             
+        creds = json.load(open(path, "r"))
         CONSUMER_KEY = creds['CONSUMER_KEY']
         CONSUMER_SECRET = creds['CONSUMER_SECRET']
         ACCESS_KEY = creds['ACCESS_TOKEN']
@@ -35,55 +35,11 @@ def create_twitter_api():
     return api
 
 
-def fix_dates(df):
-    """fixes dates for twitter dataframe"""
-    df['date_time'] = pd.to_datetime(df['created_at'])
-    df['date'] = pd.to_datetime(df['date_time'].dt.date)
-
-    def find_monday(d):
-        """Receives a date and returns the date of the preceding Monday."""
-        while d.weekday() != 0:
-            d += datetime.timedelta(-1)
-        return d
-    df['date_week'] = df['date'].apply(find_monday)
-    return df
-
-
-def load_tweets(api, user_name, num, n_max_id=0):
-    """
-    Get raw data from twitter. See api.GetUserTimeline 
-    https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
-    
-    Paramaters
-    ----------
-    api : twitter.Api
-        Twitter api class
-    user_name : str
-        A twitter handle. Do not include the "@"
-    num : int
-        The number of tweets to get (max 200)
-    n_max_id : int
-        Returns only statuses with an ID less than (that is, older than) or 
-        qual to the specified ID. By default, 0.
-
-    Returns
-    -------
-    twitter_data
-    """
-    raw = api.GetUserTimeline(
-        screen_name=user_name,
-        count=num,
-        exclude_replies=True,
-        include_rts=False,
-        trim_user=True,
-        max_id=n_max_id
-    )
-    return raw
-
-
-def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
-    '''
-    Gets tweets and returns a DataFrame.
+def get_old_tweets(user_name, 
+                   num_tweets_per_iter=200,
+                   max_iter=10,
+                   include_retweets=True):
+    '''Gets tweets and returns a list of Status instances.
 
     Parameters
     ----------
@@ -92,40 +48,101 @@ def tweets_get(user_name, num=200, start_date=datetime.date(2019, 9, 11)):
     num : int
         The number of tweets you would like to return (max is 200)
     loops: int
-        Because the max number of tweets is only 200, loops will indicate how many sets of "num" tweets you would like to return. 
-        For example num=200 and loops=2 would get 400 tweets
+        Because the max number of tweets is only 200, loops will indicate how 
+        many sets of "num" tweets you would like to return. For example 
+        num=200 and loops=2 would get 400 tweets
 
     Returns
     -------
     Dataframe with twitter data
     '''
 
-    api = create_twitter_api()
-    
-    # get the first batch of twitter data
     print(f"Getting tweets for: {user_name}...")
-    raw = load_tweets(api=api, user_name=user_name, num=num)
-    df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-    df = fix_dates(df)
+    api = create_twitter_api()
+    tweets = []
 
-    # loop through the dataframe x number of times based on the smallest id
-    # from the dataframe
-    max_id = df['id'].min()-1
-    min_date = df['date'].min()
-    while min_date > start_date:
-        raw = load_tweets(
-            api=api, user_name=user_name, num=num, n_max_id=max_id
+    # keep adding more tweets until the max limit is reached
+    iteration = 1
+    while True:
+        if iteration == 1:
+            # get the first batch of twitter data
+            t = tweets + api.GetUserTimeline(
+                screen_name=user_name, 
+                include_rts=include_retweets,
+                count=num_tweets_per_iter
+            )
+        else:
+            # call the api with max_id
+            t = api.GetUserTimeline(
+                screen_name=user_name, 
+                include_rts=include_retweets,
+                count=num_tweets_per_iter,
+                max_id=oldest_tweet_id - 1
+            )
+        # add api response to list and get stats
+        tweets = tweets + t
+        oldest_tweet_id = tweets[-1].id
+        oldest_tweet_date = tweets[-1].created_at
+        oldest_tweet_date = datetime.strptime(oldest_tweet_date, '%a %b %d %H:%M:%S %z %Y')
+        print(f'\tIteration {iteration}: ' 
+              f'tweets = {len(t)}, oldeset = {oldest_tweet_date}')
+        iteration += 1
+
+        # check to see if the loop should be brocken
+        if iteration > max_iter:
+            print('\t', 'x' * 32, sep='')
+            print(f'\tMax iterations reached! Oldest tweet is {oldest_tweet_date}')
+            break
+
+        if len(t) == 0:
+            print('\t', 'x' * 32, sep='')
+            print(f'\tNo new tweets found in last iteration')
+            break
+    
+    print('\t', 'x' * 32, sep='')
+    print(f'\tTotal tweets: {len(tweets)}')
+    print(f'\tOldeset tweet: {oldest_tweet_date}')       
+
+    return tweets
+
+
+def tweets_to_df(tweets):
+    """Convert list of tweets into a DataFrame
+
+    Paramaters
+    ----------
+    tweets : list of Statuses
+        Should be a list of statuses that is returned by `get_tweets`.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A dataframe of the tweets
+    """
+
+    out = defaultdict(list)
+
+    for x in tweets:
+        out['user_name'].append(x.user.name)
+        out['user_id'].append(x.user.id)
+        out['id'].append(x.id)
+        out['created_at'].append(
+            datetime.strptime(x.created_at, '%a %b %d %H:%M:%S %z %Y')
         )
-        temp_df = pd.DataFrame.from_dict([i.AsDict() for i in raw])
-        try:
-            temp_df = fix_dates(temp_df)
-        except KeyError:
-            print(f"\terror fixing dates for {user_name}...")
-            return df
-        df = pd.concat([df, temp_df], sort=False)
-        max_id = df['id'].min()-1
-        min_date = df['date'].min()
+        out['lang'].append(x.lang)
+        out['retweet_count'].append(x.retweet_count)
+        out['favorite_count'].append(x.favorite_count)
+        out['location'].append(x.location)
+        out['place'].append(x.place)
+        out['hashtags'].append(x.hashtags)
+        out['full_text'].append(x.full_text)
 
-    df = df[df['date'] >= pd.to_datetime(start_date)]
-    df = df[df['lang'] == 'en']  # keep only english langauge tweets
-    return df
+
+    return pd.DataFrame(out)
+
+# ============================================================================
+# Testing
+# ============================================================================
+
+# se_tweets = get_tweets('TheRealSamlAm', 20, 2)
+# se_df = tweets_to_df(se_tweets)
