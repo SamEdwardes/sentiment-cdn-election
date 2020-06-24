@@ -155,8 +155,8 @@ def get_phrase_counts_df(df, selected_col, users):
 
     for i in users:
         temp = get_phrase_counts(
-            df[df['handle'] == i]['clean_tweet'])
-        temp['handle'] = i
+            df[df['user_name'] == i]['clean_tweet'])
+        temp['user_name'] = i
         df_phrase_count = pd.concat([temp, df_phrase_count])
 
     df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total,
@@ -177,8 +177,8 @@ def get_word_counts_df(df, selected_col, users):
 
     for i in users:
         temp = get_word_counts(
-            df[df['handle'] == i]['clean_tweet'])
-        temp['handle'] = i
+            df[df['user_name'] == i]['clean_tweet'])
+        temp['user_name'] = i
         df_word_count = pd.concat([temp, df_word_count])
 
     df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
