@@ -1,11 +1,11 @@
 # to build:
 # docker image build -t cdn_election:latest .
-
 # to run:
 # docker run -d --rm -p 5000:5000 cdn_election
-
 # to run interactively:
 # docker run -it --rm -p 5000:5000 cdn_election bash
+# to run interactivly and attach local volcume:
+# docker run -it --rm -p 5000:5000 -v $(pwd):/home/ cdn_election bash
 
 FROM python:3.7
 

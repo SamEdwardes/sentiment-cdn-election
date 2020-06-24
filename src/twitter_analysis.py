@@ -94,102 +94,6 @@ def get_sentiment(tweets):
     return {'polarity': polarity, 'subjectivity': subjectivity}
 
 
-def get_word_counts(tweets_df):
-    """
-    Calculates the word counts for a string
-
-    Parameters:
-    -----------
-    tweets_df -- (list) a list of tweets, or column from dataframe of tweets
-
-    Returns:
-    --------
-    Dictionary with word count
-    """
-    words = " ".join(list(tweets_df))
-    counts = TextBlob(words).word_counts
-    counts_df = pd.DataFrame.from_dict(dict(counts), orient="index")
-    counts_df = counts_df.sort_values(by=[0], ascending=False)
-    counts_df.reset_index(level=0, inplace=True)
-    counts_df.columns = ['word', 'count']
-    return counts_df
-
-
-def get_phrase_counts(tweets_df):
-    """
-    Calculates the word counts for a string
-
-    Parameters:
-    -----------
-    tweets_df -- (list) a list of tweets, or column from dataframe of tweets
-
-    Returns:
-    --------
-    Dictionary with phrase count
-    """
-    # get ngrams
-    words = " ".join(list(tweets_df))
-    ngram_2 = TextBlob(words).ngrams(n=2)
-    ngram_3 = TextBlob(words).ngrams(n=3)
-    ngrams = ngram_2 + ngram_3
-    # do word count on ngrams
-    phrases = []
-    for i in ngrams:
-        phrases.append("_".join(i))
-    phrases = " ".join(list(phrases))
-    counts = TextBlob(phrases).word_counts
-    # turn into dataframe
-    counts_df = pd.DataFrame.from_dict(dict(counts), orient="index")
-    counts_df = counts_df.sort_values(by=[0], ascending=False)
-    counts_df.reset_index(level=0, inplace=True)
-    counts_df.columns = ['phrase', 'count']
-    return counts_df
-
-
-def get_phrase_counts_df(df, selected_col, users):
-    df_phrase_count_total = get_phrase_counts(df[selected_col])
-    df_phrase_count_total.columns = ['phrase', 'total_count']
-    df_phrase_count_total['rank'] = df_phrase_count_total['total_count'].rank(
-        ascending=False, method="first")
-    df_phrase_count = pd.DataFrame()
-
-    for i in users:
-        temp = get_phrase_counts(
-            df[df['user_name'] == i]['clean_tweet'])
-        temp['user_name'] = i
-        df_phrase_count = pd.concat([temp, df_phrase_count])
-
-    df_phrase_count = pd.merge(df_phrase_count, df_phrase_count_total,
-                               how='left', on='phrase')
-    df_phrase_count = df_phrase_count.sort_values(
-        by=['total_count', 'phrase', 'count'], ascending=False
-    ).reset_index(drop=True)
-
-    return df_phrase_count.head(5000)
-
-
-def get_word_counts_df(df, selected_col, users):
-    df_word_count_totals = get_word_counts(df[selected_col])
-    df_word_count_totals.columns = ['word', 'total_count']
-    df_word_count_totals['rank'] = df_word_count_totals['total_count'].rank(
-        ascending=False, method="first")
-    df_word_count = pd.DataFrame()
-
-    for i in users:
-        temp = get_word_counts(
-            df[df['user_name'] == i]['clean_tweet'])
-        temp['user_name'] = i
-        df_word_count = pd.concat([temp, df_word_count])
-
-    df_word_count = pd.merge(df_word_count, df_word_count_totals, how='left',
-                                on='word')
-    df_word_count = df_word_count.sort_values(
-        by=['total_count', 'word', 'count'], ascending=False
-    ).reset_index(drop=True)
-    
-    return df_word_count.head(5000)
-
-
 def word_search(text, search_words):
     """
     Checks to see if words exist in a body of text
@@ -211,6 +115,20 @@ def word_search(text, search_words):
 
 
 def count_tweets_about(df, col_to_search):
+    """Count how many times different leaders are tweeting about each other.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        A dataframe to use for the count
+    col_to_search : str
+        The column to search for
+
+    Returns
+    -------
+    pandas.DataFrame
+        The dataframe with new columns to capture the count data
+    """
     justin_search = ["justin", "trudeau", "justintrudeau"]
     scheer_search = ["scheer", "andrew", "andrewscheer"]
     may_search = ["may", "elizabeth", "ElizabethMay"]

@@ -2,13 +2,13 @@ import pandas as pd
 
 import config
 from helpers import print_break
-from twitter_analysis import (count_tweets_about, get_phrase_counts_df,
-                              get_sentiment, get_word_counts_df, tweets_break,
-                              tweets_clean_text)
+from twitter_analysis import (count_tweets_about, tweets_clean_text,
+                              get_sentiment, tweets_break)
+from twitter_counts import count_tweet_words
 
 
 print_break("Refreshing data analysis")
-df = pd.read_csv(config.df_path_raw)
+df = pd.read_csv(config.df_path_raw).query('lang == "en"')
 
 # ============================================================================
 # clean tweet text
@@ -34,21 +34,22 @@ df.to_csv(config.df_path_clean, index=False)
 # ============================================================================
 # creating count data
 # ============================================================================
-print(" - calculating count data...")
-twitter_handles = df['user_name'].unique().tolist()
+twitter_handles = df['screen_name'].unique().tolist()
 
-df_phrase_count = get_phrase_counts_df(
-    df=df.query('rt == False'), 
-    selected_col='clean_tweet',
-    users=twitter_handles
+print(" - calculating phrase count data...")
+df_phrase_count = count_tweet_words(
+    df=df.query('rt == False and lang == "en"'), 
+    ngram_range=(2, 5),
+    min_df=5
 )
 # write to disk
 df_phrase_count.to_csv(config.df_path_phrase_count, index=False)
 
-df_word_count = get_word_counts_df(
-    df=df.query('rt == False'), 
-    selected_col='clean_tweet',
-    users=twitter_handles
+print(" - calculating word count data...")
+df_word_count = count_tweet_words(
+    df=df.query('rt == False and lang == "en"'), 
+    ngram_range=(1, 1),
+    min_df=10
 )
 # write to disk
 df_word_count.to_csv(config.df_path_word_count, index=False)
