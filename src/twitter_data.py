@@ -66,7 +66,7 @@ def get_old_tweets(user_name,
     while True:
         if iteration == 1:
             # get the first batch of twitter data
-            t = tweets + api.GetUserTimeline(
+            t = api.GetUserTimeline(
                 screen_name=user_name, 
                 include_rts=include_retweets,
                 count=num_tweets_per_iter
@@ -123,6 +123,7 @@ def tweets_to_df(tweets):
     out = defaultdict(list)
 
     for x in tweets:
+        out['screen_name'].append(x.user.screen_name)
         out['user_name'].append(x.user.name)
         out['user_id'].append(x.user.id)
         out['id'].append(x.id)
