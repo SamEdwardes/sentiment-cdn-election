@@ -29,6 +29,7 @@ df_phrase_count = pd.read_csv(df_path_phrase_count)
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "2019 Canadian Election Sentiment Analysis"
+port = int(os.environ.get("PORT", 5000))
 server = app.server
 
 colors = {"dark_green": "#3a4f41",
@@ -250,8 +251,8 @@ def plot_phrase_count_bar_stack(filter_selection):
 
 
 if __name__ == '__main__':
-    if 'ON_HEROKU' in os.environ:
-        debug_bool = False
-    else:
-        debug_bool = True
-    app.run_server(debug=debug_bool)
+    app.run_server(
+        debug=False,
+        host="0.0.0.0",
+        port=port
+    )
