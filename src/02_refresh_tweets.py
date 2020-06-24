@@ -1,7 +1,9 @@
+import datetime
+
 import pandas as pd
 
+from helpers import get_project_global_variables, print_break
 from twitter_data import tweets_get
-from helpers import print_break, get_project_global_variables
 
 print_break("Refreshing Twitter Data")
 
@@ -12,7 +14,9 @@ df_path_raw = get_project_global_variables()["df_path_raw"]
 df = pd.DataFrame()
 for user in users:
     df_temp = tweets_get(
-        user_name=user, num=200, start_date=start_date
+        user_name=['JustinTrudeau'], 
+        num=200, 
+        start_date=datetime.datetime(2020, 6, 10)
     )
     df_temp['handle'] = user
     df = pd.concat([df, df_temp], sort=False)
